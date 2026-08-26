@@ -9,9 +9,9 @@ const isoDateSchema = z
     message: 'Data inválida',
   });
 
-function withDateOrder<
-  T extends { startDate: string; endDate: string },
->(schema: z.ZodType<T>) {
+function withDateOrder<T extends { startDate: string; endDate: string }>(
+  schema: z.ZodType<T>,
+) {
   return schema.refine((data) => data.startDate <= data.endDate, {
     message: 'Data de início deve ser anterior ou igual à data de fim',
     path: ['endDate'],
@@ -20,36 +20,34 @@ function withDateOrder<
 
 const statusSchema = z.enum(['planned', 'in_progress', 'done', 'blocked']);
 
-export const initiativeSchema = withDateOrder(
-  z.object({
-    id: z.string().min(1),
-    title: z.string().min(1, 'Título é obrigatório'),
-    description: z.string().optional(),
-    startDate: isoDateSchema,
-    endDate: isoDateSchema,
-    status: statusSchema.optional(),
-  }),
-);
+// Base object shapes (no id / no children), reused for both persisted
+// entities and form-input validation.
+const initiativeBaseSchema = z.object({
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional(),
+  startDate: isoDateSchema,
+  endDate: isoDateSchema,
+  status: statusSchema.optional(),
+});
 
-export const epicSchema = withDateOrder(
-  z.object({
-    id: z.string().min(1),
-    title: z.string().min(1, 'Título é obrigatório'),
-    description: z.string().optional(),
-    startDate: isoDateSchema,
-    endDate: isoDateSchema,
-    status: statusSchema.optional(),
-    initiatives: z.array(initiativeSchema),
-  }),
-);
+const epicBaseSchema = z.object({
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional(),
+  startDate: isoDateSchema,
+  endDate: isoDateSchema,
+  status: statusSchema.optional(),
+});
 
-export const objectiveSchema = z.object({
-  id: z.string().min(1),
+const objectiveBaseSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   color: z.string().optional(),
-  epics: z.array(epicSchema),
 });
+
+// Form-input schemas (what the create/edit forms validate against).
+export const initiativeInputSchema = withDateOrder(initiativeBaseSchema);
+export const epicInputSchema = withDateOrder(epicBaseSchema);
+export const objectiveInputSchema = objectiveBaseSchema;
 
 export const periodSchema = withDateOrder(
   z.object({
@@ -57,6 +55,29 @@ export const periodSchema = withDateOrder(
     endDate: isoDateSchema,
   }),
 );
+
+export const roadmapMetaInputSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  period: periodSchema,
+});
+
+// Persisted-entity schemas (include id / children), used for JSON import.
+export const initiativeSchema = withDateOrder(
+  initiativeBaseSchema.extend({ id: z.string().min(1) }),
+);
+
+export const epicSchema = withDateOrder(
+  epicBaseSchema.extend({
+    id: z.string().min(1),
+    initiatives: z.array(initiativeSchema),
+  }),
+);
+
+export const objectiveSchema = objectiveBaseSchema.extend({
+  id: z.string().min(1),
+  epics: z.array(epicSchema),
+});
 
 export const roadmapSchema = z.object({
   id: z.string().min(1),

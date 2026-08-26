@@ -1,7 +1,13 @@
+import { useRoadmapStore } from '@/store/roadmapStore';
+import { RoadmapList } from '@/components/roadmap/RoadmapList';
+import { RoadmapDetail } from '@/components/roadmap/RoadmapDetail';
+
 function App() {
+  const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <h1 className="p-8 text-2xl font-semibold">Roadmap Builder</h1>
+      {activeRoadmap ? <RoadmapDetail /> : <RoadmapList />}
     </div>
   );
 }
