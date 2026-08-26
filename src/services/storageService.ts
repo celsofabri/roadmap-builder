@@ -1,7 +1,9 @@
 import type { Roadmap, RoadmapSummary } from '@/types/roadmap.types';
 import { regenerateRoadmapIds } from '@/utils/cloneRoadmap';
+import { buildSeedRoadmaps } from '@/utils/seedData';
 
 const STORAGE_KEY = 'roadmap-builder:roadmaps';
+const SEEDED_KEY = 'roadmap-builder:seeded';
 
 function readAll(): Roadmap[] {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -81,5 +83,14 @@ export const storageService = {
 
   replaceAll(roadmaps: Roadmap[]): void {
     writeAll(roadmaps);
+  },
+
+  /** Populates localStorage with example roadmaps on the very first run only. */
+  seedIfNeeded(): void {
+    if (localStorage.getItem(SEEDED_KEY)) return;
+    localStorage.setItem(SEEDED_KEY, '1');
+    if (readAll().length === 0) {
+      writeAll(buildSeedRoadmaps());
+    }
   },
 };
