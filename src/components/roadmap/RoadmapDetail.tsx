@@ -6,6 +6,8 @@ import { TimelineView } from '@/components/roadmap/TimelineView';
 import { ObjectiveForm } from '@/components/forms/ObjectiveForm';
 import { EpicForm } from '@/components/forms/EpicForm';
 import { InitiativeForm } from '@/components/forms/InitiativeForm';
+import { ImportExportButtons } from '@/components/shared/ImportExportButtons';
+import { exportService } from '@/services/exportService';
 import { formatShortDateLabel } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 
@@ -81,13 +83,19 @@ export function RoadmapDetail() {
             {formatShortDateLabel(roadmap.period.endDate)}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowMetaForm(true)}
-          className="shrink-0 rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-        >
-          Editar roadmap
-        </button>
+        <div className="flex shrink-0 items-start gap-2">
+          <ImportExportButtons
+            exportLabel="Exportar"
+            onExport={() => exportService.exportRoadmap(roadmap)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowMetaForm(true)}
+            className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Editar roadmap
+          </button>
+        </div>
       </div>
 
       <div className="mb-4 flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-sm w-fit">

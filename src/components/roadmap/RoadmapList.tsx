@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import { RoadmapForm } from '@/components/roadmap/RoadmapForm';
+import { ImportExportButtons } from '@/components/shared/ImportExportButtons';
+import { storageService } from '@/services/storageService';
+import { exportService } from '@/services/exportService';
 import { formatShortDateLabel } from '@/utils/dateUtils';
 
 export function RoadmapList() {
@@ -11,6 +14,7 @@ export function RoadmapList() {
   const renameRoadmap = useRoadmapStore((s) => s.renameRoadmap);
   const deleteRoadmap = useRoadmapStore((s) => s.deleteRoadmap);
   const duplicateRoadmap = useRoadmapStore((s) => s.duplicateRoadmap);
+  const importRoadmap = useRoadmapStore((s) => s.importRoadmap);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -35,15 +39,22 @@ export function RoadmapList() {
 
   return (
     <div className="mx-auto max-w-4xl p-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold text-slate-900">Roadmap Builder</h1>
-        <button
-          type="button"
-          onClick={() => setShowCreateForm(true)}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Novo roadmap
-        </button>
+        <div className="flex items-start gap-2">
+          <ImportExportButtons
+            exportLabel="Exportar todos"
+            onExport={() => exportService.exportAll(storageService.getAllRoadmaps())}
+            onImport={(imported) => imported.forEach((r) => importRoadmap(r))}
+          />
+          <button
+            type="button"
+            onClick={() => setShowCreateForm(true)}
+            className="shrink-0 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            + Novo roadmap
+          </button>
+        </div>
       </div>
 
       {roadmaps.length === 0 && (

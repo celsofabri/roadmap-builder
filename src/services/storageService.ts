@@ -1,4 +1,5 @@
-import type { Epic, Initiative, Objective, Roadmap, RoadmapSummary } from '@/types/roadmap.types';
+import type { Roadmap, RoadmapSummary } from '@/types/roadmap.types';
+import { regenerateRoadmapIds } from '@/utils/cloneRoadmap';
 
 const STORAGE_KEY = 'roadmap-builder:roadmaps';
 
@@ -66,10 +67,8 @@ export const storageService = {
 
     const now = new Date().toISOString();
     const duplicate: Roadmap = {
-      ...original,
-      id: crypto.randomUUID(),
+      ...regenerateRoadmapIds(original),
       name: `${original.name} (cópia)`,
-      objectives: original.objectives.map(cloneObjective),
       createdAt: now,
       updatedAt: now,
     };
@@ -84,26 +83,3 @@ export const storageService = {
     writeAll(roadmaps);
   },
 };
-
-function cloneObjective(objective: Objective): Objective {
-  return {
-    ...objective,
-    id: crypto.randomUUID(),
-    epics: objective.epics.map(cloneEpic),
-  };
-}
-
-function cloneEpic(epic: Epic): Epic {
-  return {
-    ...epic,
-    id: crypto.randomUUID(),
-    initiatives: epic.initiatives.map(cloneInitiative),
-  };
-}
-
-function cloneInitiative(initiative: Initiative): Initiative {
-  return {
-    ...initiative,
-    id: crypto.randomUUID(),
-  };
-}
