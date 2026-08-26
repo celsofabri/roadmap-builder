@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { RoadmapForm } from '@/components/roadmap/RoadmapForm';
+import { TimelineView } from '@/components/roadmap/TimelineView';
 import { ObjectiveForm } from '@/components/forms/ObjectiveForm';
 import { EpicForm } from '@/components/forms/EpicForm';
 import { InitiativeForm } from '@/components/forms/InitiativeForm';
@@ -45,6 +46,7 @@ export function RoadmapDetail() {
   const updateInitiative = useRoadmapStore((s) => s.updateInitiative);
   const removeInitiative = useRoadmapStore((s) => s.removeInitiative);
 
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
   const [showMetaForm, setShowMetaForm] = useState(false);
   const [objectiveFormTarget, setObjectiveFormTarget] = useState<ObjectiveFormTarget | null>(null);
   const [epicFormTarget, setEpicFormTarget] = useState<EpicFormTarget | null>(null);
@@ -88,7 +90,46 @@ export function RoadmapDetail() {
         </button>
       </div>
 
-      <div className="space-y-5">
+      <div className="mb-4 flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-sm w-fit">
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          className={`rounded-md px-3 py-1 ${
+            viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+          }`}
+        >
+          Lista
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode('timeline')}
+          className={`rounded-md px-3 py-1 ${
+            viewMode === 'timeline' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+          }`}
+        >
+          Timeline
+        </button>
+      </div>
+
+      {viewMode === 'timeline' && (
+        <div className="mb-6">
+          <TimelineView
+            roadmap={roadmap}
+            onEditEpic={(objectiveId, epic) => setEpicFormTarget({ mode: 'edit', objectiveId, epic })}
+            onAddEpic={(objectiveId) => setEpicFormTarget({ mode: 'create', objectiveId })}
+            onEditInitiative={(epic, initiative) =>
+              setInitiativeFormTarget({
+                mode: 'edit',
+                epicId: epic.id,
+                epicRange: { startDate: epic.startDate, endDate: epic.endDate },
+                initiative,
+              })
+            }
+          />
+        </div>
+      )}
+
+      <div className={viewMode === 'list' ? 'space-y-5' : 'hidden'}>
         {roadmap.objectives.map((objective) => (
           <section
             key={objective.id}
