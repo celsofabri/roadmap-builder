@@ -46,31 +46,38 @@ export function RoadmapForm({ initial, onSubmit, onClose }: RoadmapFormProps) {
 
   return (
     <Modal title={initial ? 'Editar roadmap' : 'Novo roadmap'} onClose={onClose}>
-      <form onSubmit={handleSubmit} className={styles.formStack}>
-        <label className={styles.formGroup}>
-          Nome do time / roadmap
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="roadmap-name">
+            Nome do time / roadmap
+          </label>
           <input
+            id="roadmap-name"
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
             className={styles.input}
-            placeholder="Ex: Plataforma"
+            placeholder="Ex: Plataforma 2026"
           />
           {errors.name && <p className={styles.error}>{errors.name}</p>}
-        </label>
+        </div>
 
-        <label className={styles.formGroup}>
-          Descrição (opcional)
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="roadmap-description">
+            Descrição <span className={styles.hint}>(opcional)</span>
+          </label>
           <textarea
+            id="roadmap-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className={styles.input}
+            placeholder="Objetivo geral deste roadmap"
           />
-        </label>
+        </div>
 
-        <div>
-          <p className={styles.formGroup}>Período (mês/ano, livre)</p>
+        <div className={styles.field}>
+          <span className={styles.label}>Período</span>
           <DateRangePicker
             mode="month"
             startDate={period.startDate}
@@ -78,14 +85,17 @@ export function RoadmapForm({ initial, onSubmit, onClose }: RoadmapFormProps) {
             onChange={(range) => setPeriod(range)}
             error={errors['period.endDate'] ?? errors.period}
           />
+          <p className={styles.hint}>
+            Escolha mês/ano livremente — não precisa coincidir com o ano calendário.
+          </p>
         </div>
 
         <div className={styles.formActions}>
-          <button type="button" onClick={onClose} className={styles.btnGhost}>
+          <button type="button" onClick={onClose} className={styles.btnSecondary}>
             Cancelar
           </button>
           <button type="submit" className={styles.btnPrimary}>
-            Salvar
+            {initial ? 'Salvar alterações' : 'Criar roadmap'}
           </button>
         </div>
       </form>

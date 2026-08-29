@@ -1,0 +1,30 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  @include m.reset-button;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: v.$r-pill;
+  border: 1px solid v.$border-strong;
+  transition: transform v.$transition;
+
+  &:hover {
+    transform: scale(1.12);
+  }
+
+  @include m.focus-ring;
+}
+
+.swatchActive {
+  border: 2px solid v.$text;
+  transform: scale(1.12);
+}

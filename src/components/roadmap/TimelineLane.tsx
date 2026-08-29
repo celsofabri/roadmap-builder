@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { EpicBar } from '@/components/roadmap/EpicBar';
 import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
+import { PlusIcon } from '@/components/shared/Icon';
 import styles from './TimelineLane.module.scss';
 
 interface TimelineLaneProps {
@@ -10,9 +11,22 @@ interface TimelineLaneProps {
   snapDays: number;
   periodStart: string;
   timelineWidth: number;
+  labelWidth: number;
   onEpicClick: (epic: Epic) => void;
   onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
   onAddEpic: (objectiveId: string) => void;
+}
+
+interface EpicRowProps {
+  epic: Epic;
+  objectiveId: string;
+  color: string;
+  dayWidth: number;
+  snapDays: number;
+  periodStart: string;
+  timelineWidth: number;
+  onEpicClick: (epic: Epic) => void;
+  onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
 }
 
 function EpicRow({
@@ -25,18 +39,9 @@ function EpicRow({
   timelineWidth,
   onEpicClick,
   onInitiativeClick,
-}: {
-  epic: Epic;
-  objectiveId: string;
-  color: string;
-  dayWidth: number;
-  snapDays: number;
-  periodStart: string;
-  timelineWidth: number;
-  onEpicClick: (epic: Epic) => void;
-  onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
-}) {
+}: EpicRowProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `epic-lane:${epic.id}` });
+  const hasInitiatives = epic.initiatives.length > 0;
 
   return (
     <div className={styles.epicRow}>
@@ -53,7 +58,9 @@ function EpicRow({
       </div>
       <div
         ref={setNodeRef}
-        className={`${styles.initiativeLane} ${isOver ? styles.initiativeLaneOver : ''}`}
+        className={`${styles.initiativeLane} ${hasInitiatives ? styles.initiativeLaneFilled : ''} ${
+          isOver ? styles.initiativeLaneOver : ''
+        }`}
         style={{ width: timelineWidth }}
       >
         {epic.initiatives.map((initiative) => (
@@ -79,45 +86,53 @@ export function TimelineLane({
   snapDays,
   periodStart,
   timelineWidth,
+  labelWidth,
   onEpicClick,
   onInitiativeClick,
   onAddEpic,
 }: TimelineLaneProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `objective-lane:${objective.id}` });
-  const color = objective.color ?? '#64748b';
+  const color = objective.color ?? '#8b93a7';
+  const initiativeCount = objective.epics.reduce((sum, e) => sum + e.initiatives.length, 0);
 
   return (
     <div className={styles.lane}>
-      <div className={styles.laneLabel}>
+      <div className={styles.laneLabel} style={{ width: labelWidth }}>
         <div className={styles.laneLabelRow}>
-          <span className={styles.laneColorDot} style={{ backgroundColor: color }} />
-          <span className={styles.laneTitle}>{objective.title}</span>
+          <span className={styles.laneDot} style={{ backgroundColor: color }} />
+          <span className={styles.laneTitle} title={objective.title}>
+            {objective.title}
+          </span>
         </div>
-        <button type="button" onClick={() => onAddEpic(objective.id)} className={styles.addEpicButton}>
-          + Épico
+        <div className={styles.laneMeta}>
+          {objective.epics.length} épico{objective.epics.length === 1 ? '' : 's'} ·{' '}
+          {initiativeCount} iniciativa{initiativeCount === 1 ? '' : 's'}
+        </div>
+        <button type="button" onClick={() => onAddEpic(objective.id)} className={styles.addEpic}>
+          <PlusIcon size={12} />
+          Épico
         </button>
       </div>
-      <div
-        ref={setNodeRef}
-        className={`${styles.laneBody} ${isOver ? styles.laneBodyOver : ''}`}
-      >
-        {objective.epics.length === 0 && (
+
+      <div ref={setNodeRef} className={`${styles.laneBody} ${isOver ? styles.laneBodyOver : ''}`}>
+        {objective.epics.length === 0 ? (
           <p className={styles.laneEmpty}>Nenhum épico neste objetivo.</p>
+        ) : (
+          objective.epics.map((epic) => (
+            <EpicRow
+              key={epic.id}
+              epic={epic}
+              objectiveId={objective.id}
+              color={color}
+              dayWidth={dayWidth}
+              snapDays={snapDays}
+              periodStart={periodStart}
+              timelineWidth={timelineWidth}
+              onEpicClick={onEpicClick}
+              onInitiativeClick={onInitiativeClick}
+            />
+          ))
         )}
-        {objective.epics.map((epic) => (
-          <EpicRow
-            key={epic.id}
-            epic={epic}
-            objectiveId={objective.id}
-            color={color}
-            dayWidth={dayWidth}
-            snapDays={snapDays}
-            periodStart={periodStart}
-            timelineWidth={timelineWidth}
-            onEpicClick={onEpicClick}
-            onInitiativeClick={onInitiativeClick}
-          />
-        ))}
       </div>
     </div>
   );

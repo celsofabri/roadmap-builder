@@ -39,7 +39,7 @@ export function DateRangePicker({
     <div>
       <div className={styles.row}>
         <label className={styles.field}>
-          Início
+          <span className={styles.label}>Início</span>
           <input
             type={inputType}
             value={startValue}
@@ -49,7 +49,7 @@ export function DateRangePicker({
           />
         </label>
         <label className={styles.field}>
-          Fim
+          <span className={styles.label}>Fim</span>
           <input
             type={inputType}
             value={endValue}

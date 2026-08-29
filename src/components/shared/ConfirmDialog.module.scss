@@ -1,0 +1,14 @@
+@use '../../styles/variables' as v;
+
+.message {
+  font-size: v.$f-base;
+  color: v.$text-muted;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}

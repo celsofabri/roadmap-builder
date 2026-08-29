@@ -1,6 +1,8 @@
 @use './styles/variables' as v;
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -12,16 +14,28 @@ body,
 
 body {
   margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
-  background: v.$slate-50;
-  color: v.$slate-900;
+  font-family: v.$font-sans;
+  font-size: v.$f-base;
+  line-height: 1.5;
+  background: v.$bg-app;
+  color: v.$text;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 button,
@@ -32,8 +46,37 @@ select {
   color: inherit;
 }
 
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+button {
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+}
+
+// Slim, unobtrusive scrollbars — the timeline scrolls a lot horizontally.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: v.$border-strong transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: v.$border-strong;
+  border-radius: v.$r-pill;
+  border: 2px solid transparent;
+  background-clip: content-box;
+
+  &:hover {
+    background: v.$text-subtle;
+    background-clip: content-box;
+  }
 }

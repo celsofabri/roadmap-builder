@@ -14,9 +14,18 @@ export const STATUS_LABELS: Record<Status, string> = {
   blocked: 'Bloqueado',
 };
 
+/** Solid accent color — used for dots and timeline markers. */
 export const STATUS_COLORS: Record<Status, string> = {
-  planned: '#94a3b8',
-  in_progress: '#2563eb',
-  done: '#16a34a',
-  blocked: '#dc2626',
+  planned: '#8b93a7',
+  in_progress: '#5b5bd6',
+  done: '#0f9463',
+  blocked: '#dc2b47',
+};
+
+/** Tinted background + readable foreground, for pill badges. */
+export const STATUS_TINTS: Record<Status, { bg: string; fg: string }> = {
+  planned: { bg: '#eef1f6', fg: '#5b6479' },
+  in_progress: { bg: '#eeeefc', fg: '#4a4ac4' },
+  done: { bg: '#e7f6ef', fg: '#0b7a51' },
+  blocked: { bg: '#fdeef1', fg: '#b81f38' },
 };

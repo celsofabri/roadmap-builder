@@ -4,9 +4,10 @@ import { DateRangePicker } from '@/components/shared/DateRangePicker';
 import { initiativeInputSchema } from '@/schemas/roadmap.schema';
 import type { InitiativeInput } from '@/store/roadmapStore';
 import type { DateRange } from '@/utils/dateUtils';
-import { isRangeWithin } from '@/utils/dateUtils';
+import { formatShortDateLabel, isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
+import { AlertIcon } from '@/components/shared/Icon';
 import styles from '@/styles/shared.module.scss';
 
 interface InitiativeFormProps {
@@ -57,30 +58,37 @@ export function InitiativeForm({ initial, parentRange, onSubmit, onClose }: Init
 
   return (
     <Modal title={initial ? 'Editar iniciativa' : 'Nova iniciativa'} onClose={onClose}>
-      <form onSubmit={handleSubmit} className={styles.formStack}>
-        <label className={styles.formGroup}>
-          Título
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="initiative-title">
+            Título
+          </label>
           <input
+            id="initiative-title"
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className={styles.input}
+            placeholder="Ex: Integrar provedor de e-mail"
           />
           {errors.title && <p className={styles.error}>{errors.title}</p>}
-        </label>
+        </div>
 
-        <label className={styles.formGroup}>
-          Descrição (opcional)
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="initiative-description">
+            Descrição <span className={styles.hint}>(opcional)</span>
+          </label>
           <textarea
+            id="initiative-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             className={styles.input}
           />
-        </label>
+        </div>
 
-        <div>
-          <p className={styles.formGroup}>Período da iniciativa</p>
+        <div className={styles.field}>
+          <span className={styles.label}>Período da iniciativa</span>
           <DateRangePicker
             mode="day"
             startDate={range.startDate}
@@ -90,17 +98,22 @@ export function InitiativeForm({ initial, parentRange, onSubmit, onClose }: Init
           />
           {outOfRange && (
             <p className={styles.warning}>
-              ⚠ Fora do período do épico ({parentRange.startDate} a {parentRange.endDate}).
+              <AlertIcon size={14} />
+              Fora do período do épico ({formatShortDateLabel(parentRange.startDate)} –{' '}
+              {formatShortDateLabel(parentRange.endDate)}). Você pode salvar mesmo assim.
             </p>
           )}
         </div>
 
-        <label className={styles.formGroup}>
-          Status
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="initiative-status">
+            Status
+          </label>
           <select
+            id="initiative-status"
             value={status}
             onChange={(e) => setStatus(e.target.value as Status)}
-            className={styles.input}
+            className={styles.select}
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -108,14 +121,14 @@ export function InitiativeForm({ initial, parentRange, onSubmit, onClose }: Init
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
         <div className={styles.formActions}>
-          <button type="button" onClick={onClose} className={styles.btnGhost}>
+          <button type="button" onClick={onClose} className={styles.btnSecondary}>
             Cancelar
           </button>
           <button type="submit" className={styles.btnPrimary}>
-            Salvar
+            {initial ? 'Salvar alterações' : 'Criar iniciativa'}
           </button>
         </div>
       </form>

@@ -1,167 +1,251 @@
 @use './variables' as v;
 @use './mixins' as m;
 
-.formStack {
+// --- Buttons ---------------------------------------------------------------
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid transparent;
+  border-radius: v.$r-md;
+  padding: 0.5rem 0.875rem;
+  font-size: v.$f-base;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color v.$transition,
+    border-color v.$transition,
+    color v.$transition,
+    box-shadow v.$transition;
+
+  @include m.focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btnPrimary {
+  composes: btn;
+  background: v.$accent;
+  color: v.$text-inverse;
+  box-shadow: v.$shadow-xs;
+
+  &:hover:not(:disabled) {
+    background: v.$accent-hover;
+  }
+}
+
+.btnSecondary {
+  composes: btn;
+  background: v.$surface;
+  border-color: v.$border-strong;
+  color: v.$text;
+
+  &:hover:not(:disabled) {
+    background: v.$surface-muted;
+    border-color: v.$text-subtle;
+  }
+}
+
+.btnGhost {
+  composes: btn;
+  background: transparent;
+  color: v.$text-muted;
+
+  &:hover:not(:disabled) {
+    background: v.$surface-sunken;
+    color: v.$text;
+  }
+}
+
+.btnDanger {
+  composes: btn;
+  background: v.$danger;
+  color: v.$text-inverse;
+
+  &:hover:not(:disabled) {
+    background: v.$danger-hover;
+  }
+}
+
+.btnSm {
+  padding: 0.3125rem 0.625rem;
+  font-size: v.$f-sm;
+}
+
+/// Small square icon-only button.
+.iconButton {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: v.$r-sm;
+  color: v.$text-subtle;
+  transition:
+    background-color v.$transition,
+    color v.$transition;
+
+  @include m.focus-ring;
+
+  &:hover {
+    background: v.$surface-sunken;
+    color: v.$text;
+  }
+}
+
+.iconButtonDanger {
+  composes: iconButton;
+
+  &:hover {
+    background: v.$danger-soft;
+    color: v.$danger;
+  }
+}
+
+/// Inline text action, used inside dense rows.
+.linkButton {
+  @include m.reset-button;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
+  border-radius: v.$r-xs;
+  transition: color v.$transition;
+
+  @include m.focus-ring;
+
+  &:hover {
+    color: v.$accent-text;
+  }
+}
+
+.linkButtonAccent {
+  composes: linkButton;
+  color: v.$accent-text;
+
+  &:hover {
+    color: v.$accent-hover;
+  }
+}
+
+// --- Forms -----------------------------------------------------------------
+
+.form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.125rem;
 }
 
-.formGroup {
-  display: block;
-  font-size: v.$font-sm;
-  color: v.$slate-600;
-}
-
-.formGroupRow {
+.field {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: v.$font-sm;
-  color: v.$slate-600;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
 }
 
 .input {
-  margin-top: 0.25rem;
-  @include m.text-input;
+  @include m.field;
+}
+
+.select {
+  @include m.field;
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6479' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+}
+
+.colorField {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 .colorInput {
-  height: 2rem;
-  width: 3.5rem;
+  width: 44px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid v.$border-strong;
+  border-radius: v.$r-sm;
+  background: v.$surface;
   cursor: pointer;
-  border-radius: v.$radius;
-  border: 1px solid v.$slate-300;
+}
+
+.colorValue {
+  font-size: v.$f-sm;
+  color: v.$text-subtle;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  font-size: v.$f-xs;
+  color: v.$text-subtle;
 }
 
 .error {
-  margin-top: 0.25rem;
-  font-size: v.$font-sm;
-  color: v.$red-600;
+  font-size: v.$f-xs;
+  font-weight: 500;
+  color: v.$danger;
 }
 
 .warning {
-  margin-top: 0.25rem;
-  font-size: v.$font-sm;
-  color: v.$amber-600;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  border-radius: v.$r-sm;
+  background: v.$warning-soft;
+  padding: 0.5rem 0.625rem;
+  font-size: v.$f-xs;
+  color: v.$warning;
 }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  padding-top: 0.5rem;
+  padding-top: 0.25rem;
 }
 
-.btnPrimary {
-  border-radius: v.$radius;
-  background: v.$blue-600;
-  padding: 0.5rem 1rem;
-  font-size: v.$font-sm;
-  font-weight: 500;
-  color: v.$white;
-  border: none;
-  cursor: pointer;
+// --- Misc ------------------------------------------------------------------
 
-  &:hover {
-    background: v.$blue-700;
-  }
-}
-
-.btnGhost {
-  border-radius: v.$radius;
-  padding: 0.5rem 1rem;
-  font-size: v.$font-sm;
-  color: v.$slate-600;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-
-  &:hover {
-    background: v.$slate-100;
-  }
-}
-
-.btnOutline {
-  border-radius: v.$radius;
-  border: 1px solid v.$slate-300;
-  padding: 0.375rem 0.75rem;
-  font-size: v.$font-sm;
-  color: v.$slate-600;
-  background: v.$white;
-  cursor: pointer;
-
-  &:hover {
-    background: v.$slate-50;
-  }
-}
-
-.linkAction {
-  color: v.$slate-600;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    color: v.$blue-700;
-  }
-}
-
-.linkDanger {
-  color: v.$slate-600;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    color: v.$red-800;
-  }
-}
-
-.linkPrimary {
-  color: v.$blue-600;
-  font-weight: 500;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    color: v.$blue-800;
-  }
-}
-
-.confirmRow {
-  display: flex;
-  flex-shrink: 0;
+.badge {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: v.$font-sm;
+  gap: 0.3rem;
+  border-radius: v.$r-pill;
+  padding: 0.125rem 0.5rem;
+  font-size: v.$f-2xs;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
-.confirmConfirm {
-  font-weight: 500;
-  color: v.$red-600;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    color: v.$red-800;
-  }
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: v.$r-pill;
+  flex-shrink: 0;
 }
 
-.confirmCancel {
-  color: v.$slate-500;
-  background: none;
-  border: none;
-  cursor: pointer;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   padding: 0;
-
-  &:hover {
-    color: v.$slate-700;
-  }
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

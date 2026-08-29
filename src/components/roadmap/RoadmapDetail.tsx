@@ -6,10 +6,19 @@ import { TimelineView } from '@/components/roadmap/TimelineView';
 import { ObjectiveForm } from '@/components/forms/ObjectiveForm';
 import { EpicForm } from '@/components/forms/EpicForm';
 import { InitiativeForm } from '@/components/forms/InitiativeForm';
-import { ImportExportButtons } from '@/components/shared/ImportExportButtons';
-import { exportService } from '@/services/exportService';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatShortDateLabel } from '@/utils/dateUtils';
-import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
+import {
+  CalendarIcon,
+  LayersIcon,
+  ListIcon,
+  PencilIcon,
+  PlusIcon,
+  TargetIcon,
+  TimelineIcon,
+  TrashIcon,
+} from '@/components/shared/Icon';
 import sharedStyles from '@/styles/shared.module.scss';
 import styles from './RoadmapDetail.module.scss';
 
@@ -17,22 +26,27 @@ type ObjectiveFormTarget = { mode: 'create' } | { mode: 'edit'; objective: Objec
 type EpicFormTarget =
   | { mode: 'create'; objectiveId: string }
   | { mode: 'edit'; objectiveId: string; epic: Epic };
+type EpicRange = { startDate: string; endDate: string };
 type InitiativeFormTarget =
-  | { mode: 'create'; epicId: string; epicRange: { startDate: string; endDate: string } }
-  | { mode: 'edit'; epicId: string; epicRange: { startDate: string; endDate: string }; initiative: Initiative };
+  | { mode: 'create'; epicId: string; epicRange: EpicRange }
+  | { mode: 'edit'; epicId: string; epicRange: EpicRange; initiative: Initiative };
 
-function StatusBadge({ status }: { status?: Epic['status'] }) {
-  if (!status) return null;
-  return (
-    <span className={styles.statusBadge} style={{ backgroundColor: STATUS_COLORS[status] }}>
-      {STATUS_LABELS[status]}
-    </span>
-  );
-}
+type DeleteTarget =
+  | { kind: 'objective'; id: string; name: string }
+  | { kind: 'epic'; id: string; name: string }
+  | { kind: 'initiative'; id: string; name: string };
+
+const DELETE_COPY: Record<DeleteTarget['kind'], { title: string; detail: string }> = {
+  objective: {
+    title: 'Excluir objetivo',
+    detail: 'O objetivo e todos os épicos e iniciativas dentro dele serão removidos.',
+  },
+  epic: { title: 'Excluir épico', detail: 'O épico e todas as suas iniciativas serão removidos.' },
+  initiative: { title: 'Excluir iniciativa', detail: 'A iniciativa será removida do épico.' },
+};
 
 export function RoadmapDetail() {
   const roadmap = useRoadmapStore((s) => s.activeRoadmap);
-  const closeRoadmap = useRoadmapStore((s) => s.closeRoadmap);
   const updateRoadmapMeta = useRoadmapStore((s) => s.updateRoadmapMeta);
 
   const addObjective = useRoadmapStore((s) => s.addObjective);
@@ -47,69 +61,110 @@ export function RoadmapDetail() {
   const updateInitiative = useRoadmapStore((s) => s.updateInitiative);
   const removeInitiative = useRoadmapStore((s) => s.removeInitiative);
 
-  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'timeline'>('timeline');
   const [showMetaForm, setShowMetaForm] = useState(false);
   const [objectiveFormTarget, setObjectiveFormTarget] = useState<ObjectiveFormTarget | null>(null);
   const [epicFormTarget, setEpicFormTarget] = useState<EpicFormTarget | null>(null);
   const [initiativeFormTarget, setInitiativeFormTarget] = useState<InitiativeFormTarget | null>(
     null,
   );
-
-  const [confirmDeleteObjectiveId, setConfirmDeleteObjectiveId] = useState<string | null>(null);
-  const [confirmDeleteEpicId, setConfirmDeleteEpicId] = useState<string | null>(null);
-  const [confirmDeleteInitiativeId, setConfirmDeleteInitiativeId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   if (!roadmap) return null;
 
+  const epicCount = roadmap.objectives.reduce((sum, o) => sum + o.epics.length, 0);
+  const initiativeCount = roadmap.objectives.reduce(
+    (sum, o) => sum + o.epics.reduce((s, e) => s + e.initiatives.length, 0),
+    0,
+  );
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    if (deleteTarget.kind === 'objective') removeObjective(deleteTarget.id);
+    if (deleteTarget.kind === 'epic') removeEpic(deleteTarget.id);
+    if (deleteTarget.kind === 'initiative') removeInitiative(deleteTarget.id);
+    setDeleteTarget(null);
+  }
+
   return (
     <div className={styles.page}>
-      <button type="button" onClick={closeRoadmap} className={styles.backLink}>
-        ← Todos os roadmaps
-      </button>
+      <header className={styles.header}>
+        <div className={styles.headerTop}>
+          <div className={styles.titleBlock}>
+            <h1 className={styles.title}>{roadmap.name}</h1>
+            {roadmap.description && <p className={styles.description}>{roadmap.description}</p>}
+            <div className={styles.stats}>
+              <span className={styles.stat}>
+                <CalendarIcon size={14} className={styles.statIcon} />
+                {formatShortDateLabel(roadmap.period.startDate)} –{' '}
+                {formatShortDateLabel(roadmap.period.endDate)}
+              </span>
+              <span className={styles.stat}>
+                <TargetIcon size={14} className={styles.statIcon} />
+                {roadmap.objectives.length} objetivo{roadmap.objectives.length === 1 ? '' : 's'}
+              </span>
+              <span className={styles.stat}>
+                <LayersIcon size={14} className={styles.statIcon} />
+                {epicCount} épico{epicCount === 1 ? '' : 's'}
+              </span>
+              <span className={styles.stat}>
+                <ListIcon size={14} className={styles.statIcon} />
+                {initiativeCount} iniciativa{initiativeCount === 1 ? '' : 's'}
+              </span>
+            </div>
+          </div>
 
-      <div className={styles.headerRow}>
-        <div>
-          <h1 className={styles.title}>{roadmap.name}</h1>
-          {roadmap.description && <p className={styles.description}>{roadmap.description}</p>}
-          <p className={styles.meta}>
-            {formatShortDateLabel(roadmap.period.startDate)} —{' '}
-            {formatShortDateLabel(roadmap.period.endDate)}
-          </p>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              onClick={() => setShowMetaForm(true)}
+              className={`${sharedStyles.btnSecondary} ${sharedStyles.btnSm}`}
+            >
+              <PencilIcon size={14} />
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setObjectiveFormTarget({ mode: 'create' })}
+              className={`${sharedStyles.btnPrimary} ${sharedStyles.btnSm}`}
+            >
+              <PlusIcon size={14} />
+              Objetivo
+            </button>
+          </div>
         </div>
-        <div className={styles.headerActions}>
-          <ImportExportButtons
-            exportLabel="Exportar"
-            onExport={() => exportService.exportRoadmap(roadmap)}
-          />
-          <button type="button" onClick={() => setShowMetaForm(true)} className={styles.editButton}>
-            Editar roadmap
+
+        <div className={styles.tabs} role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'timeline'}
+            onClick={() => setViewMode('timeline')}
+            className={`${styles.tab} ${viewMode === 'timeline' ? styles.tabActive : ''}`}
+          >
+            <TimelineIcon size={15} />
+            Timeline
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'list'}
+            onClick={() => setViewMode('list')}
+            className={`${styles.tab} ${viewMode === 'list' ? styles.tabActive : ''}`}
+          >
+            <ListIcon size={15} />
+            Lista
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className={styles.viewToggle}>
-        <button
-          type="button"
-          onClick={() => setViewMode('list')}
-          className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.viewToggleButtonActive : ''}`}
-        >
-          Lista
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode('timeline')}
-          className={`${styles.viewToggleButton} ${viewMode === 'timeline' ? styles.viewToggleButtonActive : ''}`}
-        >
-          Timeline
-        </button>
-      </div>
-
-      {viewMode === 'timeline' && (
-        <div className={styles.timelineWrap}>
+      <div className={styles.body}>
+        {viewMode === 'timeline' && (
           <TimelineView
             roadmap={roadmap}
             onEditEpic={(objectiveId, epic) => setEpicFormTarget({ mode: 'edit', objectiveId, epic })}
             onAddEpic={(objectiveId) => setEpicFormTarget({ mode: 'create', objectiveId })}
+            onAddObjective={() => setObjectiveFormTarget({ mode: 'create' })}
             onEditInitiative={(epic, initiative) =>
               setInitiativeFormTarget({
                 mode: 'edit',
@@ -119,217 +174,206 @@ export function RoadmapDetail() {
               })
             }
           />
-        </div>
-      )}
+        )}
 
-      <div className={viewMode === 'list' ? styles.objectives : styles.objectivesHidden}>
-        {roadmap.objectives.map((objective) => (
-          <section
-            key={objective.id}
-            className={styles.objectiveSection}
-            style={{ borderLeft: `4px solid ${objective.color ?? '#94a3b8'}` }}
-          >
-            <div className={styles.objectiveHeaderRow}>
-              <div>
-                <h2 className={styles.objectiveTitle}>{objective.title}</h2>
-                {objective.description && (
-                  <p className={styles.objectiveDescription}>{objective.description}</p>
-                )}
-              </div>
-              {confirmDeleteObjectiveId === objective.id ? (
-                <div className={styles.confirmRowSm}>
-                  <span>Excluir objetivo e todo seu conteúdo?</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      removeObjective(objective.id);
-                      setConfirmDeleteObjectiveId(null);
-                    }}
-                    className={sharedStyles.confirmConfirm}
-                  >
-                    Sim
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDeleteObjectiveId(null)}
-                    className={sharedStyles.confirmCancel}
-                  >
-                    Não
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.rowActionsSm}>
-                  <button
-                    type="button"
-                    onClick={() => setObjectiveFormTarget({ mode: 'edit', objective })}
-                    className={sharedStyles.linkAction}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDeleteObjectiveId(objective.id)}
-                    className={sharedStyles.linkDanger}
-                  >
-                    Excluir
-                  </button>
-                </div>
-              )}
+        {/* Kept mounted so switching tabs doesn't reset any inline state. */}
+        <div className={viewMode === 'list' ? undefined : styles.hidden}>
+          {roadmap.objectives.length === 0 && (
+            <div className={styles.emptyObjectives}>
+              <p className={styles.emptyTitle}>Nenhum objetivo ainda</p>
+              <p className={styles.emptyText}>
+                Objetivos agrupam os épicos do roadmap e definem a cor de cada raia na timeline.
+              </p>
             </div>
+          )}
 
-            <ul className={styles.epicsList}>
-              {objective.epics.map((epic) => (
-                <li key={epic.id} className={styles.epicItem}>
-                  <div className={styles.epicHeaderRow}>
+          <div className={styles.objectives}>
+            {roadmap.objectives.map((objective) => {
+              const color = objective.color ?? '#8b93a7';
+              return (
+                <section key={objective.id} className={styles.objective}>
+                  <span className={styles.objectiveRail} style={{ backgroundColor: color }} />
+
+                  <div className={styles.objectiveHeader}>
                     <div>
-                      <div className={styles.epicTitleRow}>
-                        <span className={styles.epicTitle}>{epic.title}</span>
-                        <StatusBadge status={epic.status} />
+                      <div className={styles.objectiveTitleRow}>
+                        <span className={styles.objectiveDot} style={{ backgroundColor: color }} />
+                        <h2 className={styles.objectiveTitle}>{objective.title}</h2>
                       </div>
-                      <p className={styles.epicMeta}>
-                        {formatShortDateLabel(epic.startDate)} — {formatShortDateLabel(epic.endDate)}
-                      </p>
+                      {objective.description && (
+                        <p className={styles.objectiveDescription}>{objective.description}</p>
+                      )}
                     </div>
-                    {confirmDeleteEpicId === epic.id ? (
-                      <div className={styles.confirmRowXs}>
-                        <span>Excluir épico?</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            removeEpic(epic.id);
-                            setConfirmDeleteEpicId(null);
-                          }}
-                          className={sharedStyles.confirmConfirm}
-                        >
-                          Sim
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteEpicId(null)}
-                          className={sharedStyles.confirmCancel}
-                        >
-                          Não
-                        </button>
-                      </div>
-                    ) : (
-                      <div className={styles.rowActionsXs}>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setEpicFormTarget({ mode: 'edit', objectiveId: objective.id, epic })
-                          }
-                          className={sharedStyles.linkAction}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteEpicId(epic.id)}
-                          className={sharedStyles.linkDanger}
-                        >
-                          Excluir
-                        </button>
-                      </div>
-                    )}
+
+                    <div className={styles.rowActions}>
+                      <button
+                        type="button"
+                        className={sharedStyles.iconButton}
+                        onClick={() => setObjectiveFormTarget({ mode: 'edit', objective })}
+                        aria-label={`Editar objetivo ${objective.title}`}
+                      >
+                        <PencilIcon size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        className={sharedStyles.iconButtonDanger}
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: 'objective',
+                            id: objective.id,
+                            name: objective.title,
+                          })
+                        }
+                        aria-label={`Excluir objetivo ${objective.title}`}
+                      >
+                        <TrashIcon size={15} />
+                      </button>
+                    </div>
                   </div>
 
-                  <ul className={styles.initiativesList}>
-                    {epic.initiatives.map((initiative) => (
-                      <li key={initiative.id} className={styles.initiativeItem}>
-                        <div>
-                          <div className={styles.initiativeTitleRow}>
-                            <span className={styles.initiativeTitle}>{initiative.title}</span>
-                            <StatusBadge status={initiative.status} />
-                          </div>
-                          <p className={styles.initiativeMeta}>
-                            {formatShortDateLabel(initiative.startDate)} —{' '}
-                            {formatShortDateLabel(initiative.endDate)}
-                          </p>
-                        </div>
-                        {confirmDeleteInitiativeId === initiative.id ? (
-                          <div className={styles.confirmRowXs}>
-                            <span>Excluir?</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                removeInitiative(initiative.id);
-                                setConfirmDeleteInitiativeId(null);
-                              }}
-                              className={sharedStyles.confirmConfirm}
-                            >
-                              Sim
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteInitiativeId(null)}
-                              className={sharedStyles.confirmCancel}
-                            >
-                              Não
-                            </button>
-                          </div>
-                        ) : (
-                          <div className={styles.rowActionsXs}>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setInitiativeFormTarget({
-                                  mode: 'edit',
-                                  epicId: epic.id,
-                                  epicRange: { startDate: epic.startDate, endDate: epic.endDate },
-                                  initiative,
-                                })
-                              }
-                              className={sharedStyles.linkAction}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmDeleteInitiativeId(initiative.id)}
-                              className={sharedStyles.linkDanger}
-                            >
-                              Excluir
-                            </button>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                  {objective.epics.length > 0 && (
+                    <ul className={styles.epics}>
+                      {objective.epics.map((epic) => (
+                        <li key={epic.id} className={styles.epic}>
+                          <div className={styles.epicHeader}>
+                            <div>
+                              <div className={styles.epicTitleRow}>
+                                <span className={styles.epicTitle}>{epic.title}</span>
+                                <StatusBadge status={epic.status} />
+                              </div>
+                              <p className={styles.epicDates}>
+                                {formatShortDateLabel(epic.startDate)} –{' '}
+                                {formatShortDateLabel(epic.endDate)}
+                              </p>
+                            </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setInitiativeFormTarget({
-                        mode: 'create',
-                        epicId: epic.id,
-                        epicRange: { startDate: epic.startDate, endDate: epic.endDate },
-                      })
-                    }
-                    className={styles.addInitiativeButton}
-                  >
-                    + Iniciativa
-                  </button>
-                </li>
-              ))}
-            </ul>
+                            <div className={styles.rowActions}>
+                              <button
+                                type="button"
+                                className={sharedStyles.iconButton}
+                                onClick={() =>
+                                  setEpicFormTarget({
+                                    mode: 'edit',
+                                    objectiveId: objective.id,
+                                    epic,
+                                  })
+                                }
+                                aria-label={`Editar épico ${epic.title}`}
+                              >
+                                <PencilIcon size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                className={sharedStyles.iconButtonDanger}
+                                onClick={() =>
+                                  setDeleteTarget({ kind: 'epic', id: epic.id, name: epic.title })
+                                }
+                                aria-label={`Excluir épico ${epic.title}`}
+                              >
+                                <TrashIcon size={14} />
+                              </button>
+                            </div>
+                          </div>
+
+                          {epic.initiatives.length > 0 && (
+                            <ul className={styles.initiatives}>
+                              {epic.initiatives.map((initiative) => (
+                                <li key={initiative.id} className={styles.initiative}>
+                                  <div className={styles.initiativeMain}>
+                                    <span className={styles.initiativeTitle}>
+                                      {initiative.title}
+                                    </span>
+                                    <StatusBadge status={initiative.status} />
+                                    <span className={styles.initiativeDates}>
+                                      {formatShortDateLabel(initiative.startDate)} –{' '}
+                                      {formatShortDateLabel(initiative.endDate)}
+                                    </span>
+                                  </div>
+
+                                  <div className={styles.rowActions}>
+                                    <button
+                                      type="button"
+                                      className={sharedStyles.iconButton}
+                                      onClick={() =>
+                                        setInitiativeFormTarget({
+                                          mode: 'edit',
+                                          epicId: epic.id,
+                                          epicRange: {
+                                            startDate: epic.startDate,
+                                            endDate: epic.endDate,
+                                          },
+                                          initiative,
+                                        })
+                                      }
+                                      aria-label={`Editar iniciativa ${initiative.title}`}
+                                    >
+                                      <PencilIcon size={13} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={sharedStyles.iconButtonDanger}
+                                      onClick={() =>
+                                        setDeleteTarget({
+                                          kind: 'initiative',
+                                          id: initiative.id,
+                                          name: initiative.title,
+                                        })
+                                      }
+                                      aria-label={`Excluir iniciativa ${initiative.title}`}
+                                    >
+                                      <TrashIcon size={13} />
+                                    </button>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setInitiativeFormTarget({
+                                mode: 'create',
+                                epicId: epic.id,
+                                epicRange: { startDate: epic.startDate, endDate: epic.endDate },
+                              })
+                            }
+                            className={styles.addInline}
+                          >
+                            <PlusIcon size={13} />
+                            Iniciativa
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className={styles.addEpicRow}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEpicFormTarget({ mode: 'create', objectiveId: objective.id })
+                      }
+                      className={styles.addInline}
+                    >
+                      <PlusIcon size={14} />
+                      Épico
+                    </button>
+                  </div>
+                </section>
+              );
+            })}
 
             <button
               type="button"
-              onClick={() => setEpicFormTarget({ mode: 'create', objectiveId: objective.id })}
-              className={styles.addEpicButton}
+              onClick={() => setObjectiveFormTarget({ mode: 'create' })}
+              className={styles.addObjective}
             >
-              + Épico
+              <PlusIcon size={15} />
+              Adicionar objetivo
             </button>
-          </section>
-        ))}
-
-        <button
-          type="button"
-          onClick={() => setObjectiveFormTarget({ mode: 'create' })}
-          className={styles.addObjectiveButton}
-        >
-          + Objetivo
-        </button>
+          </div>
+        </div>
       </div>
 
       {showMetaForm && (
@@ -387,6 +431,16 @@ export function RoadmapDetail() {
             }
             setInitiativeFormTarget(null);
           }}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title={DELETE_COPY[deleteTarget.kind].title}
+          message={`"${deleteTarget.name}" será removido. ${DELETE_COPY[deleteTarget.kind].detail} Essa ação não pode ser desfeita.`}
+          confirmLabel="Excluir"
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={confirmDelete}
         />
       )}
     </div>

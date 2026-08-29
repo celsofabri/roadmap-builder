@@ -6,21 +6,72 @@
   white-space: nowrap;
 }
 
-@mixin focusable {
-  &:focus {
-    outline: none;
-    border-color: v.$blue-500;
+@mixin reset-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+@mixin focus-ring($color: v.$accent) {
+  &:focus-visible {
+    outline: 2px solid $color;
+    outline-offset: 2px;
   }
 }
 
-@mixin text-input {
+@mixin field {
   width: 100%;
-  border-radius: v.$radius;
-  border: 1px solid v.$slate-300;
+  border-radius: v.$r-md;
+  border: 1px solid v.$border-strong;
+  background: v.$surface;
   padding: 0.5rem 0.75rem;
-  font-size: v.$font-sm;
-  color: v.$slate-900;
-  background: v.$white;
+  font-size: v.$f-base;
+  color: v.$text;
+  transition:
+    border-color v.$transition,
+    box-shadow v.$transition;
 
-  @include focusable;
+  &::placeholder {
+    color: v.$text-subtle;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: v.$text-subtle;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: v.$accent;
+    box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.16);
+  }
+
+  &:disabled {
+    background: v.$surface-sunken;
+    color: v.$text-subtle;
+    cursor: not-allowed;
+  }
+}
+
+@mixin card {
+  background: v.$surface;
+  border: 1px solid v.$border;
+  border-radius: v.$r-lg;
+  box-shadow: v.$shadow-xs;
+}
+
+/// Applies below the given breakpoint.
+@mixin below($bp) {
+  @media (max-width: #{$bp - 1px}) {
+    @content;
+  }
+}
+
+@mixin above($bp) {
+  @media (min-width: $bp) {
+    @content;
+  }
 }

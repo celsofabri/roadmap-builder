@@ -3,8 +3,8 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic } from '@/types/roadmap.types';
-import { addDaysISO, diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
-import { STATUS_COLORS } from '@/utils/statusOptions';
+import { addDaysISO, diffInDaysISO, formatShortDateLabel, rangeSpanDays } from '@/utils/dateUtils';
+import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import styles from './EpicBar.module.scss';
 
 interface EpicBarProps {
@@ -37,7 +37,14 @@ export function EpicBar({
 
   const display = preview ?? epic;
   const left = diffInDaysISO(periodStart, display.startDate) * dayWidth;
-  const width = Math.max(rangeSpanDays(display) * dayWidth, 12);
+  const width = Math.max(rangeSpanDays(display) * dayWidth, 14);
+  const tooltip = [
+    epic.title,
+    `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
+    epic.status ? STATUS_LABELS[epic.status] : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   function startResize(edge: 'start' | 'end', e: React.PointerEvent) {
     e.stopPropagation();
@@ -83,9 +90,9 @@ export function EpicBar({
         style={{
           backgroundColor: color,
           transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
-          boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.35)' : undefined,
+          boxShadow: isDragging ? '0 6px 16px rgba(20, 25, 43, 0.35)' : undefined,
           zIndex: isDragging ? 20 : 1,
-          opacity: isDragging ? 0.85 : 1,
+          opacity: isDragging ? 0.9 : 1,
         }}
       >
         <button
@@ -94,11 +101,14 @@ export function EpicBar({
           {...attributes}
           onClick={() => onClick(epic)}
           className={styles.body}
-          title={epic.title}
+          title={tooltip}
         >
           <span className={styles.label}>{epic.title}</span>
           {epic.status && (
-            <span className={styles.statusDot} style={{ backgroundColor: STATUS_COLORS[epic.status] }} />
+            <span
+              className={styles.statusDot}
+              style={{ backgroundColor: STATUS_COLORS[epic.status] }}
+            />
           )}
         </button>
         <div

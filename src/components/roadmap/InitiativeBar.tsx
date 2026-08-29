@@ -3,8 +3,8 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Initiative } from '@/types/roadmap.types';
-import { addDaysISO, diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
-import { STATUS_COLORS } from '@/utils/statusOptions';
+import { addDaysISO, diffInDaysISO, formatShortDateLabel, rangeSpanDays } from '@/utils/dateUtils';
+import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import styles from './InitiativeBar.module.scss';
 
 interface InitiativeBarProps {
@@ -37,7 +37,14 @@ export function InitiativeBar({
 
   const display = preview ?? initiative;
   const left = diffInDaysISO(periodStart, display.startDate) * dayWidth;
-  const width = Math.max(rangeSpanDays(display) * dayWidth, 10);
+  const width = Math.max(rangeSpanDays(display) * dayWidth, 12);
+  const tooltip = [
+    initiative.title,
+    `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
+    initiative.status ? STATUS_LABELS[initiative.status] : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   function startResize(edge: 'start' | 'end', e: React.PointerEvent) {
     e.stopPropagation();
@@ -83,9 +90,9 @@ export function InitiativeBar({
         style={{
           backgroundColor: color,
           transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
-          boxShadow: isDragging ? '0 3px 8px rgba(0,0,0,0.3)' : undefined,
+          boxShadow: isDragging ? '0 4px 10px rgba(20, 25, 43, 0.3)' : undefined,
           zIndex: isDragging ? 20 : 1,
-          opacity: isDragging ? 0.85 : 0.9,
+          opacity: isDragging ? 0.9 : 0.82,
         }}
       >
         <button
@@ -94,7 +101,7 @@ export function InitiativeBar({
           {...attributes}
           onClick={() => onClick(initiative)}
           className={styles.body}
-          title={initiative.title}
+          title={tooltip}
         >
           <span className={styles.label}>{initiative.title}</span>
           {initiative.status && (
