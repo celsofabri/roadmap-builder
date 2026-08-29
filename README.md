@@ -1,32 +1,63 @@
-# React + TypeScript + Vite
+# Roadmap Builder
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Ferramenta front-end para criar e gerenciar roadmaps de time — por formulário e por
+drag-and-drop numa timeline visual. Todos os dados ficam no `localStorage` do navegador.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19 + TypeScript + Vite**
+- **Zustand** — estado global
+- **@dnd-kit** — drag-and-drop da timeline
+- **Zod** — validação de formulários e do JSON importado
+- **date-fns** — datas "civis" (sem timezone)
+- **SCSS Modules** — estilos por componente, tokens em `src/styles/`
 
-## React Compiler
+## Modelo de dados
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+Roadmap → Objective → Epic → Initiative
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+O período do roadmap é livre (mês/ano de início e fim), não precisa coincidir com o ano
+calendário. Datas de épicos e iniciativas fora do intervalo do pai geram apenas um aviso,
+nunca bloqueiam o salvamento.
+
+## Desenvolvimento
+
+```bash
+npm install
+npm run dev        # servidor de desenvolvimento em http://localhost:5173
+npm run build      # tsc -b && vite build
+npm run preview    # serve o build de produção
+npm run lint       # oxlint
+```
+
+## Deploy — GitHub Pages
+
+O deploy é automático via GitHub Actions: todo push em `main` roda lint, type check e build,
+e publica o resultado no GitHub Pages.
+
+### Configuração inicial (uma vez)
+
+1. Crie o repositório no GitHub e faça o push da branch `main`.
+2. Em **Settings → Pages → Build and deployment**, defina **Source: GitHub Actions**.
+3. Pronto — o próximo push em `main` publica o site.
+
+O endereço final é `https://<usuario>.github.io/<repositorio>/`.
+
+### Sobre o `base` do Vite
+
+GitHub Pages serve projetos a partir de um subcaminho (`/<repositorio>/`), então o build
+precisa desse prefixo nos assets. O workflow resolve isso sozinho:
+`actions/configure-pages` informa o caminho, que é normalizado e passado ao build via
+`VITE_BASE_PATH`. Builds locais continuam usando `/`.
+
+Isso significa que **renomear o repositório não quebra o deploy** — o caminho é derivado em
+tempo de execução, não fixado no código.
+
+### Workflows
+
+| Arquivo | Quando roda | O que faz |
+| --- | --- | --- |
+| `.github/workflows/deploy.yml` | push em `main`, ou manualmente | lint → build → publica no Pages |
+| `.github/workflows/ci.yml` | pull requests para `main` | lint → build (sem publicar) |

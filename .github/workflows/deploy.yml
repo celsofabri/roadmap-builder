@@ -1,0 +1,73 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Lets you re-run a deploy from the Actions tab without pushing a commit.
+  workflow_dispatch:
+
+# GITHUB_TOKEN needs to read the repo and mint an OIDC token for the Pages deploy.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; queue the newest and let it win.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Resolve base path
+        id: base
+        run: |
+          # configure-pages returns "/repo" for project sites and "" for user/org
+          # sites. Vite wants a leading AND trailing slash, so normalise here.
+          raw='${{ steps.pages.outputs.base_path }}'
+          trimmed="${raw%/}"
+          echo "path=${trimmed}/" >> "$GITHUB_OUTPUT"
+          echo "Building with base: ${trimmed}/"
+
+      - name: Build
+        env:
+          VITE_BASE_PATH: ${{ steps.base.outputs.path }}
+        # Runs `tsc -b && vite build`, so type errors fail the deploy.
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
