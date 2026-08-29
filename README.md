@@ -24,6 +24,16 @@ nunca bloqueiam o salvamento.
 
 ## Desenvolvimento
 
+Requer **Node 24.20.0** (LTS "Krypton"). A versão está fixada em `.nvmrc`, então com
+`nvm` ou `fnm` basta:
+
+```bash
+nvm use    # ou: fnm use
+```
+
+O CI usa o mesmo arquivo (`node-version-file: .nvmrc`), então não existe versão duplicada
+entre local e pipeline.
+
 ```bash
 npm install
 npm run dev        # servidor de desenvolvimento em http://localhost:5173
