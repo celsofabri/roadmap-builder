@@ -126,6 +126,26 @@ export const LayersIcon = ({ size = 16, className }: IconProps) =>
 export const ChevronRightIcon = ({ size = 16, className }: IconProps) =>
   base(size, className, <path d="m9 18 6-6-6-6" />);
 
+export const CollapseIcon = ({ size = 16, className }: IconProps) =>
+  base(
+    size,
+    className,
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16M6.5 10 5 12l1.5 2" />
+    </>,
+  );
+
+export const ExpandIcon = ({ size = 16, className }: IconProps) =>
+  base(
+    size,
+    className,
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16M12.5 10 14 12l-1.5 2" />
+    </>,
+  );
+
 export const SearchIcon = ({ size = 16, className }: IconProps) =>
   base(
     size,

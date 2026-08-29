@@ -21,6 +21,11 @@
   padding: 1.125rem 1rem 0.875rem;
 }
 
+.brandCollapsed {
+  justify-content: center;
+  padding: 1.125rem 0 0.875rem;
+}
+
 .brandMark {
   display: flex;
   align-items: center;
@@ -51,25 +56,53 @@
   color: v.$nav-text-muted;
 }
 
-.closeMobile {
+.navIconButton {
   @include m.reset-button;
-  margin-left: auto;
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   border-radius: v.$r-sm;
   color: v.$nav-text-muted;
+  transition:
+    background-color v.$transition,
+    color v.$transition;
 
   &:hover {
     background: v.$nav-hover;
     color: v.$nav-text;
   }
 
+  @include m.focus-ring(#8f8ff5);
+}
+
+.closeMobile {
+  composes: navIconButton;
+  margin-left: auto;
+  display: none;
+
   @include m.below(v.$bp-lg) {
     display: inline-flex;
   }
+}
+
+/// Rail/expand toggle — desktop only, since narrow screens use the drawer.
+.collapseToggle {
+  composes: navIconButton;
+  margin-left: auto;
+
+  @include m.below(v.$bp-lg) {
+    display: none;
+  }
+}
+
+.expandToggle {
+  composes: navIconButton;
+  width: 36px;
+  height: 32px;
+  margin: 0 auto 0.75rem;
 }
 
 // --- New roadmap -----------------------------------------------------------
@@ -95,6 +128,63 @@
   }
 
   @include m.focus-ring(#8f8ff5);
+}
+
+.newButtonCollapsed {
+  width: 36px;
+  padding: 0;
+  margin: 0 auto 0.875rem;
+}
+
+// --- Collapsed rail --------------------------------------------------------
+
+.railList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0 0.75rem;
+}
+
+/// Roadmap reduced to its initials, with the full name in a native tooltip.
+.railItem {
+  @include m.reset-button;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: v.$r-md;
+  background: v.$nav-bg-raised;
+  color: v.$nav-text-muted;
+  font-size: v.$f-xs;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition:
+    background-color v.$transition,
+    color v.$transition;
+
+  &:hover {
+    background: v.$nav-hover;
+    color: v.$nav-text;
+  }
+
+  @include m.focus-ring(#8f8ff5);
+}
+
+.railItemActive {
+  background: v.$accent;
+  color: #fff;
+
+  &:hover {
+    background: v.$accent;
+    color: #fff;
+  }
 }
 
 // --- Search ----------------------------------------------------------------
@@ -355,6 +445,12 @@
   border-top: 1px solid v.$nav-border;
 }
 
+.footerCollapsed {
+  flex-direction: column;
+  align-items: center;
+  padding: 0.625rem 0.375rem;
+}
+
 .footerButton {
   @include m.reset-button;
   flex: 1;
@@ -377,6 +473,12 @@
   }
 
   @include m.focus-ring(#8f8ff5);
+}
+
+.footerButtonCollapsed {
+  width: 36px;
+  flex: none;
+  padding: 0.4rem 0;
 }
 
 .footerError {

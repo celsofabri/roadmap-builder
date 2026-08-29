@@ -8,20 +8,52 @@ import { MenuIcon } from '@/components/shared/Icon';
 import sharedStyles from '@/styles/shared.module.scss';
 import styles from './App.module.scss';
 
+const COLLAPSED_KEY = 'roadmap-builder:sidebar-collapsed';
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 function App() {
   const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
   const loadRoadmaps = useRoadmapStore((s) => s.loadRoadmaps);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
     storageService.seedIfNeeded();
     loadRoadmaps();
   }, [loadRoadmaps]);
 
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+      } catch {
+        // Private-mode browsers can reject writes; the toggle still works for this session.
+      }
+      return next;
+    });
+  }
+
   return (
     <div className={styles.shell}>
-      <div className={`${styles.sidebarSlot} ${sidebarOpen ? styles.sidebarSlotOpen : ''}`}>
-        <Sidebar onClose={() => setSidebarOpen(false)} />
+      <div
+        className={`${styles.sidebarSlot} ${collapsed ? styles.sidebarSlotCollapsed : ''} ${
+          sidebarOpen ? styles.sidebarSlotOpen : ''
+        }`}
+      >
+        <Sidebar
+          onClose={() => setSidebarOpen(false)}
+          // The drawer always shows the full sidebar; the rail is a desktop affordance.
+          collapsed={collapsed && !sidebarOpen}
+          onToggleCollapsed={toggleCollapsed}
+        />
       </div>
 
       {sidebarOpen && (
@@ -43,9 +75,7 @@ function App() {
           >
             <MenuIcon />
           </button>
-          <span className={styles.mobileBarTitle}>
-            {activeRoadmap?.name ?? 'Roadmap Builder'}
-          </span>
+          <span className={styles.mobileBarTitle}>{activeRoadmap?.name ?? 'Roadmap Builder'}</span>
         </div>
 
         <div className={styles.content}>

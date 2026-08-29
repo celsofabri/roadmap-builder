@@ -3,8 +3,7 @@
 
 .slot {
   position: absolute;
-  top: 0;
-  height: 18px;
+  height: 18px; // must match INITIATIVE_ROW_H in TimelineLane.tsx
 }
 
 .bar {

@@ -1,9 +1,16 @@
+import { useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { EpicBar } from '@/components/roadmap/EpicBar';
 import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
 import { PlusIcon } from '@/components/shared/Icon';
+import { diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
+import { packIntoRows } from '@/utils/packIntoRows';
 import styles from './TimelineLane.module.scss';
+
+/** Kept in sync with `.initiativeRow` height / gap in the stylesheet. */
+const INITIATIVE_ROW_H = 18;
+const INITIATIVE_ROW_GAP = 3;
 
 interface TimelineLaneProps {
   objective: Objective;
@@ -15,6 +22,7 @@ interface TimelineLaneProps {
   onEpicClick: (epic: Epic) => void;
   onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
   onAddEpic: (objectiveId: string) => void;
+  onAddInitiative: (epic: Epic) => void;
 }
 
 interface EpicRowProps {
@@ -27,6 +35,7 @@ interface EpicRowProps {
   timelineWidth: number;
   onEpicClick: (epic: Epic) => void;
   onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
+  onAddInitiative: (epic: Epic) => void;
 }
 
 function EpicRow({
@@ -39,9 +48,22 @@ function EpicRow({
   timelineWidth,
   onEpicClick,
   onInitiativeClick,
+  onAddInitiative,
 }: EpicRowProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `epic-lane:${epic.id}` });
+
+  // Overlapping initiatives are stacked instead of drawn on top of each other.
+  const { placements, rowCount } = useMemo(() => packIntoRows(epic.initiatives), [epic.initiatives]);
+
   const hasInitiatives = epic.initiatives.length > 0;
+  const laneHeight = hasInitiatives
+    ? rowCount * INITIATIVE_ROW_H + (rowCount - 1) * INITIATIVE_ROW_GAP
+    : 0;
+
+  // "+" affordance sits just past the epic bar, clamped so it stays in view.
+  const epicLeft = diffInDaysISO(periodStart, epic.startDate) * dayWidth;
+  const epicWidth = Math.max(rangeSpanDays(epic) * dayWidth, 14);
+  const addLeft = Math.min(epicLeft + epicWidth + 6, Math.max(timelineWidth - 26, 0));
 
   return (
     <div className={styles.epicRow}>
@@ -55,23 +77,33 @@ function EpicRow({
           periodStart={periodStart}
           onClick={onEpicClick}
         />
+        <button
+          type="button"
+          className={styles.addInitiativeBtn}
+          style={{ left: addLeft }}
+          onClick={() => onAddInitiative(epic)}
+          title={`Adicionar iniciativa em "${epic.title}"`}
+          aria-label={`Adicionar iniciativa em ${epic.title}`}
+        >
+          <PlusIcon size={12} />
+        </button>
       </div>
+
       <div
         ref={setNodeRef}
-        className={`${styles.initiativeLane} ${hasInitiatives ? styles.initiativeLaneFilled : ''} ${
-          isOver ? styles.initiativeLaneOver : ''
-        }`}
-        style={{ width: timelineWidth }}
+        className={`${styles.initiativeLane} ${isOver ? styles.initiativeLaneOver : ''}`}
+        style={{ width: timelineWidth, height: laneHeight || undefined }}
       >
-        {epic.initiatives.map((initiative) => (
+        {placements.map(({ item, row }) => (
           <InitiativeBar
-            key={initiative.id}
-            initiative={initiative}
+            key={item.id}
+            initiative={item}
             epicId={epic.id}
             color={color}
             dayWidth={dayWidth}
             snapDays={snapDays}
             periodStart={periodStart}
+            top={row * (INITIATIVE_ROW_H + INITIATIVE_ROW_GAP)}
             onClick={(i) => onInitiativeClick(epic, i)}
           />
         ))}
@@ -90,6 +122,7 @@ export function TimelineLane({
   onEpicClick,
   onInitiativeClick,
   onAddEpic,
+  onAddInitiative,
 }: TimelineLaneProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `objective-lane:${objective.id}` });
   const color = objective.color ?? '#8b93a7';
@@ -130,6 +163,7 @@ export function TimelineLane({
               timelineWidth={timelineWidth}
               onEpicClick={onEpicClick}
               onInitiativeClick={onInitiativeClick}
+              onAddInitiative={onAddInitiative}
             />
           ))
         )}

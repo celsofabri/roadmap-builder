@@ -8,8 +8,10 @@ import { importRoadmapsFromFile } from '@/services/importService';
 import { formatShortDateLabel } from '@/utils/dateUtils';
 import {
   CloseIcon,
+  CollapseIcon,
   CopyIcon,
   DownloadIcon,
+  ExpandIcon,
   MapIcon,
   MoreIcon,
   PencilIcon,
@@ -23,9 +25,20 @@ import styles from './Sidebar.module.scss';
 interface SidebarProps {
   /** Dismisses the sidebar on narrow screens, where it renders as an overlay. */
   onClose: () => void;
+  /** Rail mode — desktop only. */
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 }
 
-export function Sidebar({ onClose }: SidebarProps) {
+/** Up to two initials, used as the rail's stand-in for the roadmap name. */
+function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
+export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps) {
   const roadmaps = useRoadmapStore((s) => s.roadmaps);
   const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
   const createRoadmap = useRoadmapStore((s) => s.createRoadmap);
@@ -69,6 +82,11 @@ export function Sidebar({ onClose }: SidebarProps) {
     };
   }, [menuId]);
 
+  function selectRoadmap(id: string) {
+    openRoadmap(id);
+    onClose();
+  }
+
   function startRename(id: string, currentName: string) {
     setMenuId(null);
     setRenamingId(id);
@@ -96,6 +114,118 @@ export function Sidebar({ onClose }: SidebarProps) {
     result.roadmaps.forEach((r) => importRoadmap(r));
   }
 
+  const dialogs = (
+    <>
+      {showCreateForm && (
+        <RoadmapForm
+          onClose={() => setShowCreateForm(false)}
+          onSubmit={(input) => {
+            const roadmap = createRoadmap(input);
+            setShowCreateForm(false);
+            selectRoadmap(roadmap.id);
+          }}
+        />
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Excluir roadmap"
+          message={`"${pendingDelete.name}" e todo o seu conteúdo serão removidos permanentemente. Essa ação não pode ser desfeita.`}
+          confirmLabel="Excluir"
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            deleteRoadmap(pendingDelete.id);
+            setPendingDelete(null);
+          }}
+        />
+      )}
+    </>
+  );
+
+  if (collapsed) {
+    return (
+      <aside className={styles.sidebar}>
+        <div className={`${styles.brand} ${styles.brandCollapsed}`}>
+          <span className={styles.brandMark}>
+            <MapIcon size={18} />
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className={styles.expandToggle}
+          onClick={onToggleCollapsed}
+          title="Expandir menu"
+          aria-label="Expandir menu"
+        >
+          <ExpandIcon size={17} />
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.newButton} ${styles.newButtonCollapsed}`}
+          onClick={() => setShowCreateForm(true)}
+          title="Novo roadmap"
+          aria-label="Novo roadmap"
+        >
+          <PlusIcon size={16} />
+        </button>
+
+        <div className={styles.railList}>
+          {roadmaps.map((roadmap) => (
+            <button
+              key={roadmap.id}
+              type="button"
+              className={`${styles.railItem} ${
+                activeRoadmap?.id === roadmap.id ? styles.railItemActive : ''
+              }`}
+              onClick={() => selectRoadmap(roadmap.id)}
+              title={roadmap.name}
+            >
+              {initialsOf(roadmap.name)}
+            </button>
+          ))}
+        </div>
+
+        {importError && (
+          <p className={styles.footerError} title={importError}>
+            Falha ao importar
+          </p>
+        )}
+
+        <div className={`${styles.footer} ${styles.footerCollapsed}`}>
+          <button
+            type="button"
+            className={`${styles.footerButton} ${styles.footerButtonCollapsed}`}
+            onClick={() => exportService.exportAll(storageService.getAllRoadmaps())}
+            title="Exportar todos os roadmaps"
+            aria-label="Exportar todos os roadmaps"
+          >
+            <DownloadIcon size={14} />
+          </button>
+          <button
+            type="button"
+            className={`${styles.footerButton} ${styles.footerButtonCollapsed}`}
+            onClick={() => fileInputRef.current?.click()}
+            title="Importar roadmaps de um arquivo JSON"
+            aria-label="Importar roadmaps"
+          >
+            <UploadIcon size={14} />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json"
+            hidden
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {dialogs}
+      </aside>
+    );
+  }
+
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
@@ -106,6 +236,15 @@ export function Sidebar({ onClose }: SidebarProps) {
           <div className={styles.brandName}>Roadmap Builder</div>
           <div className={styles.brandSub}>Planejamento de time</div>
         </div>
+        <button
+          type="button"
+          className={styles.collapseToggle}
+          onClick={onToggleCollapsed}
+          title="Reduzir menu"
+          aria-label="Reduzir menu"
+        >
+          <CollapseIcon size={17} />
+        </button>
         <button
           type="button"
           className={styles.closeMobile}
@@ -181,10 +320,7 @@ export function Sidebar({ onClose }: SidebarProps) {
               <button
                 type="button"
                 className={styles.itemButton}
-                onClick={() => {
-                  openRoadmap(roadmap.id);
-                  onClose();
-                }}
+                onClick={() => selectRoadmap(roadmap.id)}
               >
                 <div className={styles.itemName}>{roadmap.name}</div>
                 <div className={styles.itemMeta}>
@@ -292,30 +428,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         />
       </div>
 
-      {showCreateForm && (
-        <RoadmapForm
-          onClose={() => setShowCreateForm(false)}
-          onSubmit={(input) => {
-            const roadmap = createRoadmap(input);
-            setShowCreateForm(false);
-            openRoadmap(roadmap.id);
-            onClose();
-          }}
-        />
-      )}
-
-      {pendingDelete && (
-        <ConfirmDialog
-          title="Excluir roadmap"
-          message={`"${pendingDelete.name}" e todo o seu conteúdo serão removidos permanentemente. Essa ação não pode ser desfeita.`}
-          confirmLabel="Excluir"
-          onCancel={() => setPendingDelete(null)}
-          onConfirm={() => {
-            deleteRoadmap(pendingDelete.id);
-            setPendingDelete(null);
-          }}
-        />
-      )}
+      {dialogs}
     </aside>
   );
 }

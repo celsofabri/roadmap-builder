@@ -23,6 +23,7 @@ interface TimelineViewProps {
   onAddEpic: (objectiveId: string) => void;
   onAddObjective: () => void;
   onEditInitiative: (epic: Epic, initiative: Initiative) => void;
+  onAddInitiative: (epic: Epic) => void;
 }
 
 type DragData =
@@ -49,6 +50,7 @@ export function TimelineView({
   onAddEpic,
   onAddObjective,
   onEditInitiative,
+  onAddInitiative,
 }: TimelineViewProps) {
   const [granularity, setGranularity] = useState<Granularity>('monthly');
   const moveEpic = useRoadmapStore((s) => s.moveEpic);
@@ -249,6 +251,7 @@ export function TimelineView({
                       onEpicClick={(epic) => onEditEpic(objective.id, epic)}
                       onInitiativeClick={onEditInitiative}
                       onAddEpic={onAddEpic}
+                      onAddInitiative={onAddInitiative}
                     />
                   ))}
                 </DndContext>

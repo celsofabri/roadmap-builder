@@ -173,6 +173,13 @@ export function RoadmapDetail() {
                 initiative,
               })
             }
+            onAddInitiative={(epic) =>
+              setInitiativeFormTarget({
+                mode: 'create',
+                epicId: epic.id,
+                epicRange: { startDate: epic.startDate, endDate: epic.endDate },
+              })
+            }
           />
         )}
 

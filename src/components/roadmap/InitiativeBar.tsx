@@ -14,6 +14,8 @@ interface InitiativeBarProps {
   dayWidth: number;
   snapDays: number;
   periodStart: string;
+  /** Vertical offset in px, assigned by the lane's overlap packing. */
+  top: number;
   onClick: (initiative: Initiative) => void;
 }
 
@@ -24,6 +26,7 @@ export function InitiativeBar({
   dayWidth,
   snapDays,
   periodStart,
+  top,
   onClick,
 }: InitiativeBarProps) {
   const updateInitiative = useRoadmapStore((s) => s.updateInitiative);
@@ -83,7 +86,7 @@ export function InitiativeBar({
   }
 
   return (
-    <div className={styles.slot} style={{ left, width }}>
+    <div className={styles.slot} style={{ left, width, top }}>
       <div
         ref={setNodeRef}
         className={styles.bar}
