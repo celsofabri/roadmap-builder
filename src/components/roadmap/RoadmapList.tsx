@@ -5,6 +5,8 @@ import { ImportExportButtons } from '@/components/shared/ImportExportButtons';
 import { storageService } from '@/services/storageService';
 import { exportService } from '@/services/exportService';
 import { formatShortDateLabel } from '@/utils/dateUtils';
+import sharedStyles from '@/styles/shared.module.scss';
+import styles from './RoadmapList.module.scss';
 
 export function RoadmapList() {
   const roadmaps = useRoadmapStore((s) => s.roadmaps);
@@ -38,41 +40,32 @@ export function RoadmapList() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-8">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-slate-900">Roadmap Builder</h1>
-        <div className="flex items-start gap-2">
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Roadmap Builder</h1>
+        <div className={styles.headerActions}>
           <ImportExportButtons
             exportLabel="Exportar todos"
             onExport={() => exportService.exportAll(storageService.getAllRoadmaps())}
             onImport={(imported) => imported.forEach((r) => importRoadmap(r))}
           />
-          <button
-            type="button"
-            onClick={() => setShowCreateForm(true)}
-            className="shrink-0 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <button type="button" onClick={() => setShowCreateForm(true)} className={styles.newButton}>
             + Novo roadmap
           </button>
         </div>
       </div>
 
       {roadmaps.length === 0 && (
-        <p className="rounded border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
-          Nenhum roadmap ainda. Crie o primeiro para começar.
-        </p>
+        <p className={styles.empty}>Nenhum roadmap ainda. Crie o primeiro para começar.</p>
       )}
 
-      <ul className="space-y-3">
+      <ul className={styles.list}>
         {roadmaps.map((roadmap) => (
-          <li
-            key={roadmap.id}
-            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
+          <li key={roadmap.id} className={styles.card}>
+            <div className={styles.cardRow}>
+              <div className={styles.cardBody}>
                 {renamingId === roadmap.id ? (
-                  <div className="flex items-center gap-2">
+                  <div className={styles.renameRow}>
                     <input
                       autoFocus
                       value={renameValue}
@@ -81,19 +74,15 @@ export function RoadmapList() {
                         if (e.key === 'Enter') commitRename();
                         if (e.key === 'Escape') setRenamingId(null);
                       }}
-                      className="rounded border border-slate-300 px-2 py-1 text-sm"
+                      className={styles.renameInput}
                     />
-                    <button
-                      type="button"
-                      onClick={commitRename}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                    >
+                    <button type="button" onClick={commitRename} className={styles.renameSave}>
                       Salvar
                     </button>
                     <button
                       type="button"
                       onClick={() => setRenamingId(null)}
-                      className="text-sm text-slate-500 hover:text-slate-700"
+                      className={styles.renameCancel}
                     >
                       Cancelar
                     </button>
@@ -102,12 +91,12 @@ export function RoadmapList() {
                   <button
                     type="button"
                     onClick={() => openRoadmap(roadmap.id)}
-                    className="truncate text-left text-lg font-medium text-slate-900 hover:text-blue-700"
+                    className={styles.roadmapName}
                   >
                     {roadmap.name}
                   </button>
                 )}
-                <p className="mt-1 text-sm text-slate-500">
+                <p className={styles.meta}>
                   {formatShortDateLabel(roadmap.period.startDate)} —{' '}
                   {formatShortDateLabel(roadmap.period.endDate)} · {roadmap.objectiveCount}{' '}
                   objetivo(s) · {roadmap.epicCount} épico(s)
@@ -115,53 +104,53 @@ export function RoadmapList() {
               </div>
 
               {confirmingDeleteId === roadmap.id ? (
-                <div className="flex shrink-0 items-center gap-2 text-sm">
-                  <span className="text-slate-600">Excluir permanentemente?</span>
+                <div className={sharedStyles.confirmRow}>
+                  <span>Excluir permanentemente?</span>
                   <button
                     type="button"
                     onClick={() => {
                       deleteRoadmap(roadmap.id);
                       setConfirmingDeleteId(null);
                     }}
-                    className="font-medium text-red-600 hover:text-red-800"
+                    className={sharedStyles.confirmConfirm}
                   >
                     Sim
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmingDeleteId(null)}
-                    className="text-slate-500 hover:text-slate-700"
+                    className={sharedStyles.confirmCancel}
                   >
                     Não
                   </button>
                 </div>
               ) : (
-                <div className="flex shrink-0 items-center gap-3 text-sm">
+                <div className={styles.rowActions}>
                   <button
                     type="button"
                     onClick={() => openRoadmap(roadmap.id)}
-                    className="text-slate-600 hover:text-blue-700"
+                    className={sharedStyles.linkAction}
                   >
                     Abrir
                   </button>
                   <button
                     type="button"
                     onClick={() => duplicateRoadmap(roadmap.id)}
-                    className="text-slate-600 hover:text-blue-700"
+                    className={sharedStyles.linkAction}
                   >
                     Duplicar
                   </button>
                   <button
                     type="button"
                     onClick={() => startRename(roadmap.id, roadmap.name)}
-                    className="text-slate-600 hover:text-blue-700"
+                    className={sharedStyles.linkAction}
                   >
                     Renomear
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmingDeleteId(roadmap.id)}
-                    className="text-slate-600 hover:text-red-700"
+                    className={sharedStyles.linkDanger}
                   >
                     Excluir
                   </button>

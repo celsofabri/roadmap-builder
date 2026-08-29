@@ -1,0 +1,26 @@
+@use 'variables' as v;
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin focusable {
+  &:focus {
+    outline: none;
+    border-color: v.$blue-500;
+  }
+}
+
+@mixin text-input {
+  width: 100%;
+  border-radius: v.$radius;
+  border: 1px solid v.$slate-300;
+  padding: 0.5rem 0.75rem;
+  font-size: v.$font-sm;
+  color: v.$slate-900;
+  background: v.$white;
+
+  @include focusable;
+}

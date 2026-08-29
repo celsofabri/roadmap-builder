@@ -1,0 +1,45 @@
+// Color palette (previously Tailwind's slate/blue/red/amber/green scales)
+$slate-50: #f8fafc;
+$slate-100: #f1f5f9;
+$slate-200: #e2e8f0;
+$slate-300: #cbd5e1;
+$slate-400: #94a3b8;
+$slate-500: #64748b;
+$slate-600: #475569;
+$slate-700: #334155;
+$slate-800: #1e293b;
+$slate-900: #0f172a;
+$slate-900-40: rgba(15, 23, 42, 0.4);
+
+$blue-50: #eff6ff;
+$blue-50-50: rgba(239, 246, 255, 0.5);
+$blue-300: #93c5fd;
+$blue-400: #60a5fa;
+$blue-500: #3b82f6;
+$blue-600: #2563eb;
+$blue-700: #1d4ed8;
+$blue-800: #1e40af;
+
+$red-600: #dc2626;
+$red-800: #991b1b;
+
+$amber-600: #d97706;
+
+$white: #ffffff;
+$white-70: rgba(255, 255, 255, 0.7);
+$white-90: rgba(255, 255, 255, 0.9);
+
+$radius-sm: 0.125rem;
+$radius: 0.25rem;
+$radius-md: 0.375rem;
+$radius-lg: 0.5rem;
+
+$font-2xs: 0.625rem;
+$font-xs: 0.75rem;
+$font-sm: 0.875rem;
+$font-base: 1rem;
+$font-lg: 1.125rem;
+$font-2xl: 1.5rem;
+
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+$shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1);

@@ -5,6 +5,7 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic } from '@/types/roadmap.types';
 import { addDaysISO, diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
 import { STATUS_COLORS } from '@/utils/statusOptions';
+import styles from './EpicBar.module.scss';
 
 interface EpicBarProps {
   epic: Epic;
@@ -75,13 +76,10 @@ export function EpicBar({
   }
 
   return (
-    <div
-      className="absolute top-1 h-8"
-      style={{ left, width }}
-    >
+    <div className={styles.slot} style={{ left, width }}>
       <div
         ref={setNodeRef}
-        className="group relative h-full rounded text-white shadow-sm"
+        className={styles.bar}
         style={{
           backgroundColor: color,
           transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
@@ -95,28 +93,25 @@ export function EpicBar({
           {...listeners}
           {...attributes}
           onClick={() => onClick(epic)}
-          className="flex h-full w-full cursor-grab items-center overflow-hidden px-2 text-left text-xs font-medium active:cursor-grabbing"
+          className={styles.body}
           title={epic.title}
         >
-          <span className="truncate">{epic.title}</span>
+          <span className={styles.label}>{epic.title}</span>
           {epic.status && (
-            <span
-              className="ml-1.5 h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: STATUS_COLORS[epic.status] }}
-            />
+            <span className={styles.statusDot} style={{ backgroundColor: STATUS_COLORS[epic.status] }} />
           )}
         </button>
         <div
           onPointerDown={(e) => startResize('start', e)}
-          className="absolute inset-y-0 left-0 w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100"
+          className={`${styles.resizeHandle} ${styles.resizeHandleStart}`}
         >
-          <div className="mx-auto h-full w-0.5 bg-white/70" />
+          <div className={styles.resizeGrip} />
         </div>
         <div
           onPointerDown={(e) => startResize('end', e)}
-          className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100"
+          className={`${styles.resizeHandle} ${styles.resizeHandleEnd}`}
         >
-          <div className="mx-auto h-full w-0.5 bg-white/70" />
+          <div className={styles.resizeGrip} />
         </div>
       </div>
     </div>

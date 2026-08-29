@@ -3,6 +3,7 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import { storageService } from '@/services/storageService';
 import { RoadmapList } from '@/components/roadmap/RoadmapList';
 import { RoadmapDetail } from '@/components/roadmap/RoadmapDetail';
+import styles from './App.module.scss';
 
 function App() {
   const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
@@ -14,7 +15,7 @@ function App() {
   }, [loadRoadmaps]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className={styles.app}>
       {activeRoadmap ? <RoadmapDetail /> : <RoadmapList />}
     </div>
   );

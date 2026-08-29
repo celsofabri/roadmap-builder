@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { EpicBar } from '@/components/roadmap/EpicBar';
 import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
+import styles from './TimelineLane.module.scss';
 
 interface TimelineLaneProps {
   objective: Objective;
@@ -38,8 +39,8 @@ function EpicRow({
   const { setNodeRef, isOver } = useDroppable({ id: `epic-lane:${epic.id}` });
 
   return (
-    <div className="mb-1">
-      <div className="relative h-10" style={{ width: timelineWidth }}>
+    <div className={styles.epicRow}>
+      <div className={styles.epicBarSlot} style={{ width: timelineWidth }}>
         <EpicBar
           epic={epic}
           objectiveId={objectiveId}
@@ -52,7 +53,7 @@ function EpicRow({
       </div>
       <div
         ref={setNodeRef}
-        className={`relative h-6 rounded ${isOver ? 'bg-blue-50 ring-1 ring-blue-300' : ''}`}
+        className={`${styles.initiativeLane} ${isOver ? styles.initiativeLaneOver : ''}`}
         style={{ width: timelineWidth }}
       >
         {epic.initiatives.map((initiative) => (
@@ -86,26 +87,22 @@ export function TimelineLane({
   const color = objective.color ?? '#64748b';
 
   return (
-    <div className="flex border-b border-slate-100">
-      <div className="sticky left-0 z-10 w-48 shrink-0 border-r border-slate-200 bg-white p-2">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-          <span className="truncate text-sm font-medium text-slate-800">{objective.title}</span>
+    <div className={styles.lane}>
+      <div className={styles.laneLabel}>
+        <div className={styles.laneLabelRow}>
+          <span className={styles.laneColorDot} style={{ backgroundColor: color }} />
+          <span className={styles.laneTitle}>{objective.title}</span>
         </div>
-        <button
-          type="button"
-          onClick={() => onAddEpic(objective.id)}
-          className="mt-1 text-xs font-medium text-blue-600 hover:text-blue-800"
-        >
+        <button type="button" onClick={() => onAddEpic(objective.id)} className={styles.addEpicButton}>
           + Épico
         </button>
       </div>
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-hidden py-2 ${isOver ? 'bg-blue-50/50' : ''}`}
+        className={`${styles.laneBody} ${isOver ? styles.laneBodyOver : ''}`}
       >
         {objective.epics.length === 0 && (
-          <p className="px-2 text-xs text-slate-400">Nenhum épico neste objetivo.</p>
+          <p className={styles.laneEmpty}>Nenhum épico neste objetivo.</p>
         )}
         {objective.epics.map((epic) => (
           <EpicRow

@@ -10,6 +10,8 @@ import { ImportExportButtons } from '@/components/shared/ImportExportButtons';
 import { exportService } from '@/services/exportService';
 import { formatShortDateLabel } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
+import sharedStyles from '@/styles/shared.module.scss';
+import styles from './RoadmapDetail.module.scss';
 
 type ObjectiveFormTarget = { mode: 'create' } | { mode: 'edit'; objective: Objective };
 type EpicFormTarget =
@@ -22,10 +24,7 @@ type InitiativeFormTarget =
 function StatusBadge({ status }: { status?: Epic['status'] }) {
   if (!status) return null;
   return (
-    <span
-      className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-      style={{ backgroundColor: STATUS_COLORS[status] }}
-    >
+    <span className={styles.statusBadge} style={{ backgroundColor: STATUS_COLORS[status] }}>
       {STATUS_LABELS[status]}
     </span>
   );
@@ -63,64 +62,50 @@ export function RoadmapDetail() {
   if (!roadmap) return null;
 
   return (
-    <div className="mx-auto max-w-4xl p-8">
-      <button
-        type="button"
-        onClick={closeRoadmap}
-        className="mb-4 text-sm text-slate-500 hover:text-slate-700"
-      >
+    <div className={styles.page}>
+      <button type="button" onClick={closeRoadmap} className={styles.backLink}>
         ← Todos os roadmaps
       </button>
 
-      <div className="mb-6 flex items-start justify-between">
+      <div className={styles.headerRow}>
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{roadmap.name}</h1>
-          {roadmap.description && (
-            <p className="mt-1 text-sm text-slate-500">{roadmap.description}</p>
-          )}
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className={styles.title}>{roadmap.name}</h1>
+          {roadmap.description && <p className={styles.description}>{roadmap.description}</p>}
+          <p className={styles.meta}>
             {formatShortDateLabel(roadmap.period.startDate)} —{' '}
             {formatShortDateLabel(roadmap.period.endDate)}
           </p>
         </div>
-        <div className="flex shrink-0 items-start gap-2">
+        <div className={styles.headerActions}>
           <ImportExportButtons
             exportLabel="Exportar"
             onExport={() => exportService.exportRoadmap(roadmap)}
           />
-          <button
-            type="button"
-            onClick={() => setShowMetaForm(true)}
-            className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-          >
+          <button type="button" onClick={() => setShowMetaForm(true)} className={styles.editButton}>
             Editar roadmap
           </button>
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-sm w-fit">
+      <div className={styles.viewToggle}>
         <button
           type="button"
           onClick={() => setViewMode('list')}
-          className={`rounded-md px-3 py-1 ${
-            viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-          }`}
+          className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.viewToggleButtonActive : ''}`}
         >
           Lista
         </button>
         <button
           type="button"
           onClick={() => setViewMode('timeline')}
-          className={`rounded-md px-3 py-1 ${
-            viewMode === 'timeline' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-          }`}
+          className={`${styles.viewToggleButton} ${viewMode === 'timeline' ? styles.viewToggleButtonActive : ''}`}
         >
           Timeline
         </button>
       </div>
 
       {viewMode === 'timeline' && (
-        <div className="mb-6">
+        <div className={styles.timelineWrap}>
           <TimelineView
             roadmap={roadmap}
             onEditEpic={(objectiveId, epic) => setEpicFormTarget({ mode: 'edit', objectiveId, epic })}
@@ -137,54 +122,54 @@ export function RoadmapDetail() {
         </div>
       )}
 
-      <div className={viewMode === 'list' ? 'space-y-5' : 'hidden'}>
+      <div className={viewMode === 'list' ? styles.objectives : styles.objectivesHidden}>
         {roadmap.objectives.map((objective) => (
           <section
             key={objective.id}
-            className="rounded-lg border border-slate-200 bg-white p-4"
+            className={styles.objectiveSection}
             style={{ borderLeft: `4px solid ${objective.color ?? '#94a3b8'}` }}
           >
-            <div className="flex items-start justify-between">
+            <div className={styles.objectiveHeaderRow}>
               <div>
-                <h2 className="text-base font-semibold text-slate-900">{objective.title}</h2>
+                <h2 className={styles.objectiveTitle}>{objective.title}</h2>
                 {objective.description && (
-                  <p className="text-sm text-slate-500">{objective.description}</p>
+                  <p className={styles.objectiveDescription}>{objective.description}</p>
                 )}
               </div>
               {confirmDeleteObjectiveId === objective.id ? (
-                <div className="flex shrink-0 items-center gap-2 text-sm">
-                  <span className="text-slate-600">Excluir objetivo e todo seu conteúdo?</span>
+                <div className={styles.confirmRowSm}>
+                  <span>Excluir objetivo e todo seu conteúdo?</span>
                   <button
                     type="button"
                     onClick={() => {
                       removeObjective(objective.id);
                       setConfirmDeleteObjectiveId(null);
                     }}
-                    className="font-medium text-red-600 hover:text-red-800"
+                    className={sharedStyles.confirmConfirm}
                   >
                     Sim
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmDeleteObjectiveId(null)}
-                    className="text-slate-500 hover:text-slate-700"
+                    className={sharedStyles.confirmCancel}
                   >
                     Não
                   </button>
                 </div>
               ) : (
-                <div className="flex shrink-0 items-center gap-3 text-sm">
+                <div className={styles.rowActionsSm}>
                   <button
                     type="button"
                     onClick={() => setObjectiveFormTarget({ mode: 'edit', objective })}
-                    className="text-slate-600 hover:text-blue-700"
+                    className={sharedStyles.linkAction}
                   >
                     Editar
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmDeleteObjectiveId(objective.id)}
-                    className="text-slate-600 hover:text-red-700"
+                    className={sharedStyles.linkDanger}
                   >
                     Excluir
                   </button>
@@ -192,55 +177,55 @@ export function RoadmapDetail() {
               )}
             </div>
 
-            <ul className="mt-3 space-y-2">
+            <ul className={styles.epicsList}>
               {objective.epics.map((epic) => (
-                <li key={epic.id} className="rounded border border-slate-100 bg-slate-50 p-3">
-                  <div className="flex items-start justify-between">
+                <li key={epic.id} className={styles.epicItem}>
+                  <div className={styles.epicHeaderRow}>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-900">{epic.title}</span>
+                      <div className={styles.epicTitleRow}>
+                        <span className={styles.epicTitle}>{epic.title}</span>
                         <StatusBadge status={epic.status} />
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className={styles.epicMeta}>
                         {formatShortDateLabel(epic.startDate)} — {formatShortDateLabel(epic.endDate)}
                       </p>
                     </div>
                     {confirmDeleteEpicId === epic.id ? (
-                      <div className="flex shrink-0 items-center gap-2 text-xs">
-                        <span className="text-slate-600">Excluir épico?</span>
+                      <div className={styles.confirmRowXs}>
+                        <span>Excluir épico?</span>
                         <button
                           type="button"
                           onClick={() => {
                             removeEpic(epic.id);
                             setConfirmDeleteEpicId(null);
                           }}
-                          className="font-medium text-red-600 hover:text-red-800"
+                          className={sharedStyles.confirmConfirm}
                         >
                           Sim
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteEpicId(null)}
-                          className="text-slate-500 hover:text-slate-700"
+                          className={sharedStyles.confirmCancel}
                         >
                           Não
                         </button>
                       </div>
                     ) : (
-                      <div className="flex shrink-0 items-center gap-3 text-xs">
+                      <div className={styles.rowActionsXs}>
                         <button
                           type="button"
                           onClick={() =>
                             setEpicFormTarget({ mode: 'edit', objectiveId: objective.id, epic })
                           }
-                          className="text-slate-600 hover:text-blue-700"
+                          className={sharedStyles.linkAction}
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteEpicId(epic.id)}
-                          className="text-slate-600 hover:text-red-700"
+                          className={sharedStyles.linkDanger}
                         >
                           Excluir
                         </button>
@@ -248,45 +233,42 @@ export function RoadmapDetail() {
                     )}
                   </div>
 
-                  <ul className="mt-2 space-y-1 pl-4">
+                  <ul className={styles.initiativesList}>
                     {epic.initiatives.map((initiative) => (
-                      <li
-                        key={initiative.id}
-                        className="flex items-start justify-between rounded bg-white px-2 py-1.5"
-                      >
+                      <li key={initiative.id} className={styles.initiativeItem}>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-800">{initiative.title}</span>
+                          <div className={styles.initiativeTitleRow}>
+                            <span className={styles.initiativeTitle}>{initiative.title}</span>
                             <StatusBadge status={initiative.status} />
                           </div>
-                          <p className="text-xs text-slate-500">
+                          <p className={styles.initiativeMeta}>
                             {formatShortDateLabel(initiative.startDate)} —{' '}
                             {formatShortDateLabel(initiative.endDate)}
                           </p>
                         </div>
                         {confirmDeleteInitiativeId === initiative.id ? (
-                          <div className="flex shrink-0 items-center gap-2 text-xs">
-                            <span className="text-slate-600">Excluir?</span>
+                          <div className={styles.confirmRowXs}>
+                            <span>Excluir?</span>
                             <button
                               type="button"
                               onClick={() => {
                                 removeInitiative(initiative.id);
                                 setConfirmDeleteInitiativeId(null);
                               }}
-                              className="font-medium text-red-600 hover:text-red-800"
+                              className={sharedStyles.confirmConfirm}
                             >
                               Sim
                             </button>
                             <button
                               type="button"
                               onClick={() => setConfirmDeleteInitiativeId(null)}
-                              className="text-slate-500 hover:text-slate-700"
+                              className={sharedStyles.confirmCancel}
                             >
                               Não
                             </button>
                           </div>
                         ) : (
-                          <div className="flex shrink-0 items-center gap-3 text-xs">
+                          <div className={styles.rowActionsXs}>
                             <button
                               type="button"
                               onClick={() =>
@@ -297,14 +279,14 @@ export function RoadmapDetail() {
                                   initiative,
                                 })
                               }
-                              className="text-slate-600 hover:text-blue-700"
+                              className={sharedStyles.linkAction}
                             >
                               Editar
                             </button>
                             <button
                               type="button"
                               onClick={() => setConfirmDeleteInitiativeId(initiative.id)}
-                              className="text-slate-600 hover:text-red-700"
+                              className={sharedStyles.linkDanger}
                             >
                               Excluir
                             </button>
@@ -323,7 +305,7 @@ export function RoadmapDetail() {
                         epicRange: { startDate: epic.startDate, endDate: epic.endDate },
                       })
                     }
-                    className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-800"
+                    className={styles.addInitiativeButton}
                   >
                     + Iniciativa
                   </button>
@@ -334,7 +316,7 @@ export function RoadmapDetail() {
             <button
               type="button"
               onClick={() => setEpicFormTarget({ mode: 'create', objectiveId: objective.id })}
-              className="mt-3 text-sm font-medium text-blue-600 hover:text-blue-800"
+              className={styles.addEpicButton}
             >
               + Épico
             </button>
@@ -344,7 +326,7 @@ export function RoadmapDetail() {
         <button
           type="button"
           onClick={() => setObjectiveFormTarget({ mode: 'create' })}
-          className="w-full rounded-lg border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-500 hover:border-blue-400 hover:text-blue-700"
+          className={styles.addObjectiveButton}
         >
           + Objetivo
         </button>

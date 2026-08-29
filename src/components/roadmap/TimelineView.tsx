@@ -11,6 +11,7 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic, Granularity, Initiative, Roadmap } from '@/types/roadmap.types';
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
 import { addDaysISO, buildRulerCells, rangeSpanDays, snapUnitDays } from '@/utils/dateUtils';
+import styles from './TimelineView.module.scss';
 
 interface TimelineViewProps {
   roadmap: Roadmap;
@@ -118,15 +119,15 @@ export function TimelineView({
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white">
-      <div className="flex items-center justify-between border-b border-slate-200 p-3">
-        <h2 className="text-sm font-medium text-slate-700">Timeline</h2>
-        <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-sm">
+    <div className={styles.wrapper}>
+      <div className={styles.toolbar}>
+        <h2 className={styles.toolbarTitle}>Timeline</h2>
+        <div className={styles.granularityToggle}>
           <button
             type="button"
             onClick={() => setGranularity('monthly')}
-            className={`rounded-md px-3 py-1 ${
-              granularity === 'monthly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'
+            className={`${styles.granularityButton} ${
+              granularity === 'monthly' ? styles.granularityButtonActive : ''
             }`}
           >
             Mensal
@@ -134,8 +135,8 @@ export function TimelineView({
           <button
             type="button"
             onClick={() => setGranularity('weekly')}
-            className={`rounded-md px-3 py-1 ${
-              granularity === 'weekly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'
+            className={`${styles.granularityButton} ${
+              granularity === 'weekly' ? styles.granularityButtonActive : ''
             }`}
           >
             Semanal
@@ -144,20 +145,18 @@ export function TimelineView({
       </div>
 
       {roadmap.objectives.length === 0 ? (
-        <p className="p-6 text-center text-sm text-slate-400">
-          Nenhum objetivo ainda. Adicione um na visão de lista.
-        </p>
+        <p className={styles.empty}>Nenhum objetivo ainda. Adicione um na visão de lista.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className={styles.scrollArea}>
           <div style={{ width: 192 + timelineWidth }}>
-            <div className="flex border-b border-slate-200 bg-slate-50">
-              <div className="sticky left-0 z-10 w-48 shrink-0 border-r border-slate-200 bg-slate-50" />
-              <div className="flex">
+            <div className={styles.rulerRow}>
+              <div className={styles.rulerLabelGutter} />
+              <div className={styles.rulerCells}>
                 {rulerCells.map((cell) => (
                   <div
                     key={cell.startDate}
                     style={{ width: rangeSpanDays(cell) * dayWidth }}
-                    className="shrink-0 truncate border-r border-slate-200 px-2 py-1.5 text-xs text-slate-500"
+                    className={styles.rulerCell}
                   >
                     {cell.label}
                   </div>

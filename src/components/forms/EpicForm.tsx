@@ -7,6 +7,7 @@ import type { DateRange } from '@/utils/dateUtils';
 import { isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
+import styles from '@/styles/shared.module.scss';
 
 interface EpicFormProps {
   initial?: {
@@ -56,30 +57,30 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
 
   return (
     <Modal title={initial ? 'Editar épico' : 'Novo épico'} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block text-sm text-slate-600">
+      <form onSubmit={handleSubmit} className={styles.formStack}>
+        <label className={styles.formGroup}>
           Título
           <input
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            className={styles.input}
           />
-          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+          {errors.title && <p className={styles.error}>{errors.title}</p>}
         </label>
 
-        <label className="block text-sm text-slate-600">
+        <label className={styles.formGroup}>
           Descrição (opcional)
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            className={styles.input}
           />
         </label>
 
         <div>
-          <p className="mb-1 text-sm text-slate-600">Período do épico</p>
+          <p className={styles.formGroup}>Período do épico</p>
           <DateRangePicker
             mode="day"
             startDate={range.startDate}
@@ -88,18 +89,18 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
             error={errors['endDate'] ?? errors.startDate}
           />
           {outOfRange && (
-            <p className="mt-1 text-sm text-amber-600">
+            <p className={styles.warning}>
               ⚠ Fora do período do roadmap ({parentRange.startDate} a {parentRange.endDate}).
             </p>
           )}
         </div>
 
-        <label className="block text-sm text-slate-600">
+        <label className={styles.formGroup}>
           Status
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as Status)}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            className={styles.input}
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -109,18 +110,11 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
           </select>
         </label>
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded px-4 py-2 text-sm text-slate-600 hover:bg-slate-100"
-          >
+        <div className={styles.formActions}>
+          <button type="button" onClick={onClose} className={styles.btnGhost}>
             Cancelar
           </button>
-          <button
-            type="submit"
-            className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <button type="submit" className={styles.btnPrimary}>
             Salvar
           </button>
         </div>

@@ -1,4 +1,5 @@
 import { endOfMonthISO, startOfMonthISO } from '@/utils/dateUtils';
+import styles from './DateRangePicker.module.scss';
 
 interface DateRangePickerProps {
   startDate: string;
@@ -36,29 +37,29 @@ export function DateRangePicker({
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <label className="flex-1 text-sm text-slate-600">
+      <div className={styles.row}>
+        <label className={styles.field}>
           Início
           <input
             type={inputType}
             value={startValue}
             disabled={disabled}
             onChange={(e) => handleStartChange(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            className={styles.input}
           />
         </label>
-        <label className="flex-1 text-sm text-slate-600">
+        <label className={styles.field}>
           Fim
           <input
             type={inputType}
             value={endValue}
             disabled={disabled}
             onChange={(e) => handleEndChange(e.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+            className={styles.input}
           />
         </label>
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
 }

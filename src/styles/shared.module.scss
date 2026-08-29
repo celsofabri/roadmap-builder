@@ -1,0 +1,167 @@
+@use './variables' as v;
+@use './mixins' as m;
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: block;
+  font-size: v.$font-sm;
+  color: v.$slate-600;
+}
+
+.formGroupRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: v.$font-sm;
+  color: v.$slate-600;
+}
+
+.input {
+  margin-top: 0.25rem;
+  @include m.text-input;
+}
+
+.colorInput {
+  height: 2rem;
+  width: 3.5rem;
+  cursor: pointer;
+  border-radius: v.$radius;
+  border: 1px solid v.$slate-300;
+}
+
+.error {
+  margin-top: 0.25rem;
+  font-size: v.$font-sm;
+  color: v.$red-600;
+}
+
+.warning {
+  margin-top: 0.25rem;
+  font-size: v.$font-sm;
+  color: v.$amber-600;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.btnPrimary {
+  border-radius: v.$radius;
+  background: v.$blue-600;
+  padding: 0.5rem 1rem;
+  font-size: v.$font-sm;
+  font-weight: 500;
+  color: v.$white;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$blue-700;
+  }
+}
+
+.btnGhost {
+  border-radius: v.$radius;
+  padding: 0.5rem 1rem;
+  font-size: v.$font-sm;
+  color: v.$slate-600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$slate-100;
+  }
+}
+
+.btnOutline {
+  border-radius: v.$radius;
+  border: 1px solid v.$slate-300;
+  padding: 0.375rem 0.75rem;
+  font-size: v.$font-sm;
+  color: v.$slate-600;
+  background: v.$white;
+  cursor: pointer;
+
+  &:hover {
+    background: v.$slate-50;
+  }
+}
+
+.linkAction {
+  color: v.$slate-600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$blue-700;
+  }
+}
+
+.linkDanger {
+  color: v.$slate-600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$red-800;
+  }
+}
+
+.linkPrimary {
+  color: v.$blue-600;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$blue-800;
+  }
+}
+
+.confirmRow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: v.$font-sm;
+}
+
+.confirmConfirm {
+  font-weight: 500;
+  color: v.$red-600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$red-800;
+  }
+}
+
+.confirmCancel {
+  color: v.$slate-500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$slate-700;
+  }
+}

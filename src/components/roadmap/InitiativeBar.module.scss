@@ -1,0 +1,75 @@
+@use '../../styles/variables' as v;
+
+.slot {
+  position: absolute;
+  top: 0.125rem;
+  height: 1.25rem;
+}
+
+.bar {
+  position: relative;
+  height: 100%;
+  border-radius: v.$radius-sm;
+  color: v.$white;
+}
+
+.body {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  cursor: grab;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 0.375rem;
+  text-align: left;
+  font-size: v.$font-2xs;
+  font-weight: 500;
+  background: none;
+  border: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusDot {
+  margin-left: 0.25rem;
+  height: 0.375rem;
+  width: 0.375rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  cursor: ew-resize;
+  opacity: 0;
+
+  .bar:hover & {
+    opacity: 1;
+  }
+}
+
+.resizeHandleStart {
+  left: 0;
+}
+
+.resizeHandleEnd {
+  right: 0;
+}
+
+.resizeGrip {
+  margin: 0 auto;
+  height: 100%;
+  width: 1px;
+  background: v.$white-70;
+}

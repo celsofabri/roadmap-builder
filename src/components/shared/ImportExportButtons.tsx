@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import type { Roadmap } from '@/types/roadmap.types';
 import { importRoadmapsFromFile } from '@/services/importService';
+import sharedStyles from '@/styles/shared.module.scss';
+import styles from './ImportExportButtons.module.scss';
 
 interface ImportExportButtonsProps {
   exportLabel: string;
@@ -28,13 +30,9 @@ export function ImportExportButtons({ exportLabel, onExport, onImport }: ImportE
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onExport}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
-        >
+    <div className={styles.wrapper}>
+      <div className={styles.actions}>
+        <button type="button" onClick={onExport} className={sharedStyles.btnOutline}>
           {exportLabel}
         </button>
         {onImport && (
@@ -42,7 +40,7 @@ export function ImportExportButtons({ exportLabel, onExport, onImport }: ImportE
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+              className={sharedStyles.btnOutline}
             >
               Importar JSON
             </button>
@@ -50,13 +48,13 @@ export function ImportExportButtons({ exportLabel, onExport, onImport }: ImportE
               ref={fileInputRef}
               type="file"
               accept="application/json"
-              className="hidden"
+              className={styles.hiddenInput}
               onChange={handleFileChange}
             />
           </>
         )}
       </div>
-      {error && <p className="max-w-xs text-right text-sm text-red-600">{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
 }

@@ -1,0 +1,90 @@
+@use '../../styles/variables' as v;
+
+.epicRow {
+  margin-bottom: 0.25rem;
+}
+
+.epicBarSlot {
+  position: relative;
+  height: 2.5rem;
+}
+
+.initiativeLane {
+  position: relative;
+  height: 1.5rem;
+  border-radius: v.$radius;
+}
+
+.initiativeLaneOver {
+  background: v.$blue-50;
+  box-shadow: inset 0 0 0 1px v.$blue-300;
+}
+
+.lane {
+  display: flex;
+  border-bottom: 1px solid v.$slate-100;
+}
+
+.laneLabel {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  width: 12rem;
+  flex-shrink: 0;
+  border-right: 1px solid v.$slate-200;
+  background: v.$white;
+  padding: 0.5rem;
+}
+
+.laneLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.laneColorDot {
+  height: 0.625rem;
+  width: 0.625rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+
+.laneTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: v.$font-sm;
+  font-weight: 500;
+  color: v.$slate-800;
+}
+
+.addEpicButton {
+  margin-top: 0.25rem;
+  font-size: v.$font-xs;
+  font-weight: 500;
+  color: v.$blue-600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: v.$blue-800;
+  }
+}
+
+.laneBody {
+  flex: 1;
+  overflow: hidden;
+  padding: 0.5rem 0;
+}
+
+.laneBodyOver {
+  background: v.$blue-50-50;
+}
+
+.laneEmpty {
+  padding: 0 0.5rem;
+  font-size: v.$font-xs;
+  color: v.$slate-400;
+}
