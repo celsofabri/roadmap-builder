@@ -113,15 +113,19 @@
   @include m.reset-button;
   position: absolute;
   top: 5px;
+  // Above EpicBar's inline z-index: 1, so it stays clickable when it has to
+  // tuck inside a bar that spans the full timeline.
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
+  width: 20px; // must match ADD_BTN_W in TimelineLane.tsx
   height: 20px;
   border-radius: v.$r-xs;
   border: 1px dashed v.$border-strong;
   background: v.$surface;
   color: v.$text-subtle;
+  box-shadow: v.$shadow-xs;
   opacity: 0;
   transition:
     opacity v.$transition,

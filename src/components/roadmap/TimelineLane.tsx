@@ -12,6 +12,13 @@ import styles from './TimelineLane.module.scss';
 const INITIATIVE_ROW_H = 18;
 const INITIATIVE_ROW_GAP = 3;
 
+/** Kept in sync with `.addInitiativeBtn` width in the stylesheet. */
+const ADD_BTN_W = 20;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 interface TimelineLaneProps {
   objective: Objective;
   dayWidth: number;
@@ -60,10 +67,15 @@ function EpicRow({
     ? rowCount * INITIATIVE_ROW_H + (rowCount - 1) * INITIATIVE_ROW_GAP
     : 0;
 
-  // "+" affordance sits just past the epic bar, clamped so it stays in view.
+  // "+" affordance sits just past the epic bar. When the bar reaches the end of
+  // the timeline there is no room after it, so it tucks inside the bar's right
+  // end instead — inset far enough to clear the resize handle.
   const epicLeft = diffInDaysISO(periodStart, epic.startDate) * dayWidth;
   const epicWidth = Math.max(rangeSpanDays(epic) * dayWidth, 14);
-  const addLeft = Math.min(epicLeft + epicWidth + 6, Math.max(timelineWidth - 26, 0));
+  const epicRight = epicLeft + epicWidth;
+  const fitsAfterBar = epicRight + 6 + ADD_BTN_W <= timelineWidth;
+  const preferredLeft = fitsAfterBar ? epicRight + 6 : epicRight - ADD_BTN_W - 10;
+  const addLeft = clamp(preferredLeft, 2, Math.max(timelineWidth - ADD_BTN_W - 2, 2));
 
   return (
     <div className={styles.epicRow}>
