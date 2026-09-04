@@ -17,8 +17,9 @@ import {
   snapUnitDays,
 } from '@/utils/dateUtils';
 import { useElementWidth } from '@/utils/useElementWidth';
-import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '@/utils/statusOptions';
+import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import { PlusIcon } from '@/components/shared/Icon';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import sharedStyles from '@/styles/shared.module.scss';
 import styles from './TimelineView.module.scss';
 
@@ -171,15 +172,7 @@ export function TimelineView({
       <div className={styles.toolbar}>
         <div className={styles.legend}>
           {usedStatuses.length > 0 ? (
-            usedStatuses.map((status) => (
-              <span key={status} className={styles.legendItem}>
-                <span
-                  className={styles.legendDot}
-                  style={{ backgroundColor: STATUS_COLORS[status] }}
-                />
-                {STATUS_LABELS[status]}
-              </span>
-            ))
+            usedStatuses.map((status) => <StatusBadge key={status} status={status} />)
           ) : (
             <span className={styles.toolbarLeft}>Arraste as barras para ajustar datas</span>
           )}

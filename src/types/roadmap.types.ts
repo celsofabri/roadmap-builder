@@ -1,4 +1,4 @@
-export type Status = 'planned' | 'in_progress' | 'done' | 'blocked';
+export type Status = 'planned' | 'in_progress' | 'overdue' | 'done' | 'blocked';
 
 export type Granularity = 'monthly' | 'weekly';
 

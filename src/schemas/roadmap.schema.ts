@@ -18,7 +18,7 @@ function withDateOrder<T extends { startDate: string; endDate: string }>(
   });
 }
 
-const statusSchema = z.enum(['planned', 'in_progress', 'done', 'blocked']);
+const statusSchema = z.enum(['planned', 'in_progress', 'overdue', 'done', 'blocked']);
 
 // Base object shapes (no id / no children), reused for both persisted
 // entities and form-input validation.

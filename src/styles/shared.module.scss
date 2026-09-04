@@ -222,20 +222,21 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   border-radius: v.$r-pill;
-  padding: 0.125rem 0.5rem;
-  font-size: v.$f-2xs;
-  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  font-size: v.$f-xs;
+  font-weight: 700;
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .badgeDot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: v.$r-pill;
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
 .srOnly {

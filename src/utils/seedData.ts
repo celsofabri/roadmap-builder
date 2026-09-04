@@ -44,7 +44,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
             title: 'Observabilidade unificada',
             startDate: '2026-01-01',
             endDate: '2026-03-31',
-            status: 'in_progress',
+            status: 'overdue',
             owner: 'Ana Souza',
             initiatives: [
               {
@@ -52,7 +52,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
                 title: 'Centralizar logs em um único backend',
                 startDate: '2026-01-05',
                 endDate: '2026-02-15',
-                status: 'in_progress',
+                status: 'done',
                 owner: 'Ana Souza',
               },
               {
@@ -60,7 +60,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
                 title: 'Dashboards de latência por serviço',
                 startDate: '2026-02-16',
                 endDate: '2026-03-31',
-                status: 'planned',
+                status: 'overdue',
                 owner: 'Bruno Lima',
               },
             ],
