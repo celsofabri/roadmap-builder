@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Modal } from '@/components/shared/Modal';
+import { CloseIcon } from '@/components/shared/Icon';
 import { objectiveInputSchema } from '@/schemas/roadmap.schema';
 import type { ObjectiveInput } from '@/store/roadmapStore';
+import { ownerColor } from '@/utils/ownerAvatar';
 import styles from '@/styles/shared.module.scss';
 import formStyles from './ObjectiveForm.module.scss';
 
@@ -20,7 +22,7 @@ const PRESET_COLORS = [
 ];
 
 interface ObjectiveFormProps {
-  initial?: { title: string; description?: string; color?: string };
+  initial?: { title: string; description?: string; color?: string; owners?: string[] };
   onSubmit: (input: ObjectiveInput) => void;
   onClose: () => void;
 }
@@ -29,7 +31,31 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [color, setColor] = useState(initial?.color ?? DEFAULT_COLOR);
+  const [owners, setOwners] = useState<string[]>(initial?.owners ?? []);
+  const [ownerDraft, setOwnerDraft] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function addOwner() {
+    const name = ownerDraft.trim();
+    if (!name) return;
+    if (!owners.some((o) => o.toLowerCase() === name.toLowerCase())) {
+      setOwners((prev) => [...prev, name]);
+    }
+    setOwnerDraft('');
+  }
+
+  function removeOwner(name: string) {
+    setOwners((prev) => prev.filter((o) => o !== name));
+  }
+
+  function handleOwnerKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addOwner();
+    } else if (e.key === 'Backspace' && !ownerDraft && owners.length > 0) {
+      setOwners((prev) => prev.slice(0, -1));
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,6 +63,7 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
       title,
       description: description || undefined,
       color,
+      owners: owners.length > 0 ? owners : undefined,
     });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -107,6 +134,50 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
               })}
             </div>
           </div>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="objective-owners">
+            Responsáveis <span className={styles.hint}>(opcional)</span>
+          </label>
+          {owners.length > 0 && (
+            <div className={formStyles.ownerChips}>
+              {owners.map((owner) => {
+                const { bg, text } = ownerColor(owner);
+                return (
+                  <span
+                    key={owner}
+                    className={formStyles.ownerChip}
+                    style={{ backgroundColor: bg, color: text }}
+                  >
+                    {owner}
+                    <button
+                      type="button"
+                      onClick={() => removeOwner(owner)}
+                      aria-label={`Remover ${owner}`}
+                      className={formStyles.ownerChipRemove}
+                      style={{ color: text }}
+                    >
+                      <CloseIcon size={11} />
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          <input
+            id="objective-owners"
+            value={ownerDraft}
+            onChange={(e) => setOwnerDraft(e.target.value)}
+            onKeyDown={handleOwnerKeyDown}
+            onBlur={addOwner}
+            className={styles.input}
+            placeholder="Nome da pessoa e Enter"
+          />
+          <p className={styles.hint}>
+            Aparecem como labels na timeline e na lista — dá para ocultá-los sem apagar quem é
+            responsável.
+          </p>
         </div>
 
         <div className={styles.formActions}>

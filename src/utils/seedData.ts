@@ -37,6 +37,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
         title: 'Confiabilidade',
         description: 'Reduzir incidentes e melhorar observabilidade.',
         color: '#2563eb',
+        owners: ['Ana Souza', 'Bruno Lima'],
         epics: [
           {
             id: uid(),
@@ -44,6 +45,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
             startDate: '2026-01-01',
             endDate: '2026-03-31',
             status: 'in_progress',
+            owner: 'Ana Souza',
             initiatives: [
               {
                 id: uid(),
@@ -51,6 +53,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
                 startDate: '2026-01-05',
                 endDate: '2026-02-15',
                 status: 'in_progress',
+                owner: 'Ana Souza',
               },
               {
                 id: uid(),
@@ -58,6 +61,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
                 startDate: '2026-02-16',
                 endDate: '2026-03-31',
                 status: 'planned',
+                owner: 'Bruno Lima',
               },
             ],
           },
@@ -84,6 +88,7 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
         title: 'Escalabilidade',
         description: 'Preparar a plataforma para 10x de crescimento.',
         color: '#16a34a',
+        owners: ['Carla Nunes'],
         epics: [
           {
             id: uid(),

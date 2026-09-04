@@ -21,6 +21,7 @@ export interface ObjectiveInput {
   title: string;
   description?: string;
   color?: string;
+  owners?: string[];
 }
 
 export interface EpicInput {
@@ -29,6 +30,7 @@ export interface EpicInput {
   startDate: string;
   endDate: string;
   status?: Status;
+  owner?: string;
 }
 
 export interface InitiativeInput {
@@ -37,6 +39,7 @@ export interface InitiativeInput {
   startDate: string;
   endDate: string;
   status?: Status;
+  owner?: string;
 }
 
 interface RoadmapStoreState {

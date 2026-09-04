@@ -5,12 +5,14 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Initiative } from '@/types/roadmap.types';
 import { addDaysISO, diffInDaysISO, formatShortDateLabel, rangeSpanDays } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import styles from './InitiativeBar.module.scss';
 
 interface InitiativeBarProps {
   initiative: Initiative;
   epicId: string;
   color: string;
+  showOwner: boolean;
   dayWidth: number;
   snapDays: number;
   periodStart: string;
@@ -23,6 +25,7 @@ export function InitiativeBar({
   initiative,
   epicId,
   color,
+  showOwner,
   dayWidth,
   snapDays,
   periodStart,
@@ -45,6 +48,7 @@ export function InitiativeBar({
     initiative.title,
     `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
     initiative.status ? STATUS_LABELS[initiative.status] : null,
+    initiative.owner ? `Responsável: ${initiative.owner}` : null,
   ]
     .filter(Boolean)
     .join('\n');
@@ -106,6 +110,9 @@ export function InitiativeBar({
           className={styles.body}
           title={tooltip}
         >
+          {showOwner && initiative.owner && (
+            <OwnerAvatar name={initiative.owner} size={13} className={styles.ownerAvatar} />
+          )}
           <span className={styles.label}>{initiative.title}</span>
           {initiative.status && (
             <span

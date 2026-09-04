@@ -28,3 +28,42 @@
   border: 2px solid v.$text;
   transform: scale(1.12);
 }
+
+// --- Owner chips -------------------------------------------------------
+
+.ownerChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.5rem;
+}
+
+// Background/color are set inline per person via ownerColor() so the chip
+// previews the same badge that appears wherever this objective is shown.
+.ownerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.3rem 0.2rem 0.6rem;
+  border-radius: v.$r-pill;
+  font-size: v.$f-sm;
+  font-weight: 600;
+}
+
+.ownerChipRemove {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: v.$r-pill;
+  opacity: 0.7;
+  transition: opacity v.$transition;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  @include m.focus-ring;
+}

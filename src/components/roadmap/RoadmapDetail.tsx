@@ -9,8 +9,12 @@ import { InitiativeForm } from '@/components/forms/InitiativeForm';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatShortDateLabel } from '@/utils/dateUtils';
+import { ownerColor } from '@/utils/ownerAvatar';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import {
   CalendarIcon,
+  EyeIcon,
+  EyeOffIcon,
   LayersIcon,
   ListIcon,
   PencilIcon,
@@ -35,6 +39,17 @@ type DeleteTarget =
   | { kind: 'objective'; id: string; name: string }
   | { kind: 'epic'; id: string; name: string }
   | { kind: 'initiative'; id: string; name: string };
+
+const SHOW_OWNERS_KEY = 'roadmap-builder:show-owners';
+
+function readShowOwners(): boolean {
+  try {
+    const stored = localStorage.getItem(SHOW_OWNERS_KEY);
+    return stored === null ? true : stored === '1';
+  } catch {
+    return true;
+  }
+}
 
 const DELETE_COPY: Record<DeleteTarget['kind'], { title: string; detail: string }> = {
   objective: {
@@ -62,6 +77,7 @@ export function RoadmapDetail() {
   const removeInitiative = useRoadmapStore((s) => s.removeInitiative);
 
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('timeline');
+  const [showOwners, setShowOwners] = useState(readShowOwners);
   const [showMetaForm, setShowMetaForm] = useState(false);
   const [objectiveFormTarget, setObjectiveFormTarget] = useState<ObjectiveFormTarget | null>(null);
   const [epicFormTarget, setEpicFormTarget] = useState<EpicFormTarget | null>(null);
@@ -77,6 +93,18 @@ export function RoadmapDetail() {
     (sum, o) => sum + o.epics.reduce((s, e) => s + e.initiatives.length, 0),
     0,
   );
+
+  function toggleShowOwners() {
+    setShowOwners((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SHOW_OWNERS_KEY, next ? '1' : '0');
+      } catch {
+        // Private-mode browsers can reject writes; the toggle still works for this session.
+      }
+      return next;
+    });
+  }
 
   function confirmDelete() {
     if (!deleteTarget) return;
@@ -134,26 +162,39 @@ export function RoadmapDetail() {
           </div>
         </div>
 
-        <div className={styles.tabs} role="tablist">
+        <div className={styles.tabsRow}>
+          <div className={styles.tabs} role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'timeline'}
+              onClick={() => setViewMode('timeline')}
+              className={`${styles.tab} ${viewMode === 'timeline' ? styles.tabActive : ''}`}
+            >
+              <TimelineIcon size={15} />
+              Timeline
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'list'}
+              onClick={() => setViewMode('list')}
+              className={`${styles.tab} ${viewMode === 'list' ? styles.tabActive : ''}`}
+            >
+              <ListIcon size={15} />
+              Lista
+            </button>
+          </div>
+
           <button
             type="button"
-            role="tab"
-            aria-selected={viewMode === 'timeline'}
-            onClick={() => setViewMode('timeline')}
-            className={`${styles.tab} ${viewMode === 'timeline' ? styles.tabActive : ''}`}
+            onClick={toggleShowOwners}
+            aria-pressed={showOwners}
+            title={showOwners ? 'Ocultar responsáveis' : 'Mostrar responsáveis'}
+            className={`${styles.ownersToggle} ${showOwners ? styles.ownersToggleActive : ''}`}
           >
-            <TimelineIcon size={15} />
-            Timeline
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={viewMode === 'list'}
-            onClick={() => setViewMode('list')}
-            className={`${styles.tab} ${viewMode === 'list' ? styles.tabActive : ''}`}
-          >
-            <ListIcon size={15} />
-            Lista
+            {showOwners ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
+            Responsáveis
           </button>
         </div>
       </header>
@@ -162,6 +203,7 @@ export function RoadmapDetail() {
         {viewMode === 'timeline' && (
           <TimelineView
             roadmap={roadmap}
+            showOwners={showOwners}
             onEditEpic={(objectiveId, epic) => setEpicFormTarget({ mode: 'edit', objectiveId, epic })}
             onAddEpic={(objectiveId) => setEpicFormTarget({ mode: 'create', objectiveId })}
             onAddObjective={() => setObjectiveFormTarget({ mode: 'create' })}
@@ -210,6 +252,22 @@ export function RoadmapDetail() {
                       {objective.description && (
                         <p className={styles.objectiveDescription}>{objective.description}</p>
                       )}
+                      {showOwners && objective.owners && objective.owners.length > 0 && (
+                        <div className={styles.ownerChips}>
+                          {objective.owners.map((owner) => {
+                            const { bg, text } = ownerColor(owner);
+                            return (
+                              <span
+                                key={owner}
+                                className={styles.ownerChip}
+                                style={{ backgroundColor: bg, color: text }}
+                              >
+                                {owner}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     <div className={styles.rowActions}>
@@ -245,6 +303,9 @@ export function RoadmapDetail() {
                           <div className={styles.epicHeader}>
                             <div>
                               <div className={styles.epicTitleRow}>
+                                {showOwners && epic.owner && (
+                                  <OwnerAvatar name={epic.owner} size={18} />
+                                )}
                                 <span className={styles.epicTitle}>{epic.title}</span>
                                 <StatusBadge status={epic.status} />
                               </div>
@@ -287,6 +348,9 @@ export function RoadmapDetail() {
                               {epic.initiatives.map((initiative) => (
                                 <li key={initiative.id} className={styles.initiative}>
                                   <div className={styles.initiativeMain}>
+                                    {showOwners && initiative.owner && (
+                                      <OwnerAvatar name={initiative.owner} size={18} />
+                                    )}
                                     <span className={styles.initiativeTitle}>
                                       {initiative.title}
                                     </span>

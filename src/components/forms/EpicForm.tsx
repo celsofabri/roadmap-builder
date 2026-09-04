@@ -17,6 +17,7 @@ interface EpicFormProps {
     startDate: string;
     endDate: string;
     status?: Status;
+    owner?: string;
   };
   /** Roadmap period, used to show a non-blocking out-of-range warning. */
   parentRange: DateRange;
@@ -32,6 +33,7 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
     endDate: initial?.endDate ?? parentRange.endDate,
   });
   const [status, setStatus] = useState<Status | ''>(initial?.status ?? 'planned');
+  const [owner, setOwner] = useState(initial?.owner ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const outOfRange = !isRangeWithin(range, parentRange);
@@ -44,6 +46,7 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
       startDate: range.startDate,
       endDate: range.endDate,
       status: status || undefined,
+      owner: owner.trim() || undefined,
     });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -121,6 +124,19 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
               </option>
             ))}
           </select>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="epic-owner">
+            Responsável <span className={styles.hint}>(opcional)</span>
+          </label>
+          <input
+            id="epic-owner"
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            className={styles.input}
+            placeholder="Nome de quem está à frente"
+          />
         </div>
 
         <div className={styles.formActions}>

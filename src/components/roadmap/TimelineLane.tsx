@@ -6,6 +6,7 @@ import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
 import { PlusIcon } from '@/components/shared/Icon';
 import { diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
 import { packIntoRows } from '@/utils/packIntoRows';
+import { ownerColor } from '@/utils/ownerAvatar';
 import styles from './TimelineLane.module.scss';
 
 /** Kept in sync with `.initiativeRow` height / gap in the stylesheet. */
@@ -21,6 +22,7 @@ function clamp(value: number, min: number, max: number): number {
 
 interface TimelineLaneProps {
   objective: Objective;
+  showOwners: boolean;
   dayWidth: number;
   snapDays: number;
   periodStart: string;
@@ -36,6 +38,7 @@ interface EpicRowProps {
   epic: Epic;
   objectiveId: string;
   color: string;
+  showOwners: boolean;
   dayWidth: number;
   snapDays: number;
   periodStart: string;
@@ -49,6 +52,7 @@ function EpicRow({
   epic,
   objectiveId,
   color,
+  showOwners,
   dayWidth,
   snapDays,
   periodStart,
@@ -84,6 +88,7 @@ function EpicRow({
           epic={epic}
           objectiveId={objectiveId}
           color={color}
+          showOwner={showOwners}
           dayWidth={dayWidth}
           snapDays={snapDays}
           periodStart={periodStart}
@@ -112,6 +117,7 @@ function EpicRow({
             initiative={item}
             epicId={epic.id}
             color={color}
+            showOwner={showOwners}
             dayWidth={dayWidth}
             snapDays={snapDays}
             periodStart={periodStart}
@@ -126,6 +132,7 @@ function EpicRow({
 
 export function TimelineLane({
   objective,
+  showOwners,
   dayWidth,
   snapDays,
   periodStart,
@@ -153,6 +160,22 @@ export function TimelineLane({
           {objective.epics.length} épico{objective.epics.length === 1 ? '' : 's'} ·{' '}
           {initiativeCount} iniciativa{initiativeCount === 1 ? '' : 's'}
         </div>
+        {showOwners && objective.owners && objective.owners.length > 0 && (
+          <div className={styles.laneOwners}>
+            {objective.owners.map((owner) => {
+              const { bg, text } = ownerColor(owner);
+              return (
+                <span
+                  key={owner}
+                  className={styles.laneOwnerChip}
+                  style={{ backgroundColor: bg, color: text }}
+                >
+                  {owner}
+                </span>
+              );
+            })}
+          </div>
+        )}
         <button type="button" onClick={() => onAddEpic(objective.id)} className={styles.addEpic}>
           <PlusIcon size={12} />
           Épico
@@ -169,6 +192,7 @@ export function TimelineLane({
               epic={epic}
               objectiveId={objective.id}
               color={color}
+              showOwners={showOwners}
               dayWidth={dayWidth}
               snapDays={snapDays}
               periodStart={periodStart}

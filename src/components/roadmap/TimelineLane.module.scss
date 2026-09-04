@@ -53,6 +53,22 @@
   color: v.$text-subtle;
 }
 
+.laneOwners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+// Background/color are set inline per person via ownerColor().
+.laneOwnerChip {
+  padding: 0.1rem 0.4rem;
+  border-radius: v.$r-pill;
+  font-size: 0.625rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .addEpic {
   @include m.reset-button;
   display: inline-flex;

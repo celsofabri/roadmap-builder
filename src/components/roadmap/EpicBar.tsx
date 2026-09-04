@@ -5,12 +5,14 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic } from '@/types/roadmap.types';
 import { addDaysISO, diffInDaysISO, formatShortDateLabel, rangeSpanDays } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import styles from './EpicBar.module.scss';
 
 interface EpicBarProps {
   epic: Epic;
   objectiveId: string;
   color: string;
+  showOwner: boolean;
   dayWidth: number;
   snapDays: number;
   periodStart: string;
@@ -21,6 +23,7 @@ export function EpicBar({
   epic,
   objectiveId,
   color,
+  showOwner,
   dayWidth,
   snapDays,
   periodStart,
@@ -42,6 +45,7 @@ export function EpicBar({
     epic.title,
     `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
     epic.status ? STATUS_LABELS[epic.status] : null,
+    epic.owner ? `Responsável: ${epic.owner}` : null,
   ]
     .filter(Boolean)
     .join('\n');
@@ -103,6 +107,9 @@ export function EpicBar({
           className={styles.body}
           title={tooltip}
         >
+          {showOwner && epic.owner && (
+            <OwnerAvatar name={epic.owner} size={16} className={styles.ownerAvatar} />
+          )}
           <span className={styles.label}>{epic.title}</span>
           {epic.status && (
             <span

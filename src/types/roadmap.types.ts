@@ -16,6 +16,8 @@ export interface Initiative {
   startDate: string;
   endDate: string;
   status?: Status;
+  /** Name of the person leading this initiative. */
+  owner?: string;
 }
 
 export interface Epic {
@@ -25,6 +27,8 @@ export interface Epic {
   startDate: string;
   endDate: string;
   status?: Status;
+  /** Name of the person leading this epic. */
+  owner?: string;
   initiatives: Initiative[];
 }
 
@@ -34,6 +38,8 @@ export interface Objective {
   description?: string;
   /** Hex color used to visually distinguish the objective's lane */
   color?: string;
+  /** Names of the people responsible for this objective. */
+  owners?: string[];
   epics: Epic[];
 }
 

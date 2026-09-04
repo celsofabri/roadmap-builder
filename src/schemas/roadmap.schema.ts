@@ -28,6 +28,7 @@ const initiativeBaseSchema = z.object({
   startDate: isoDateSchema,
   endDate: isoDateSchema,
   status: statusSchema.optional(),
+  owner: z.string().min(1).optional(),
 });
 
 const epicBaseSchema = z.object({
@@ -36,12 +37,14 @@ const epicBaseSchema = z.object({
   startDate: isoDateSchema,
   endDate: isoDateSchema,
   status: statusSchema.optional(),
+  owner: z.string().min(1).optional(),
 });
 
 const objectiveBaseSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
   description: z.string().optional(),
   color: z.string().optional(),
+  owners: z.array(z.string().min(1)).optional(),
 });
 
 // Form-input schemas (what the create/edit forms validate against).

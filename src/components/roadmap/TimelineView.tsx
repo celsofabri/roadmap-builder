@@ -19,6 +19,7 @@ import styles from './TimelineView.module.scss';
 
 interface TimelineViewProps {
   roadmap: Roadmap;
+  showOwners: boolean;
   onEditEpic: (objectiveId: string, epic: Epic) => void;
   onAddEpic: (objectiveId: string) => void;
   onAddObjective: () => void;
@@ -46,6 +47,7 @@ function findEpicById(roadmap: Roadmap, epicId: string): Epic | undefined {
 
 export function TimelineView({
   roadmap,
+  showOwners,
   onEditEpic,
   onAddEpic,
   onAddObjective,
@@ -243,6 +245,7 @@ export function TimelineView({
                     <TimelineLane
                       key={objective.id}
                       objective={objective}
+                      showOwners={showOwners}
                       dayWidth={dayWidth}
                       snapDays={snapDays}
                       periodStart={roadmap.period.startDate}
