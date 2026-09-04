@@ -10,7 +10,12 @@ import {
 import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic, Granularity, Initiative, Roadmap } from '@/types/roadmap.types';
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
-import { addDaysISO, buildRulerCells, rangeSpanDays, snapUnitDays } from '@/utils/dateUtils';
+import {
+  addBusinessDaysISO,
+  buildRulerCells,
+  rangeSpanBusinessDays,
+  snapUnitDays,
+} from '@/utils/dateUtils';
 import { useElementWidth } from '@/utils/useElementWidth';
 import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '@/utils/statusOptions';
 import { PlusIcon } from '@/components/shared/Icon';
@@ -62,7 +67,7 @@ export function TimelineView({
 
   const [scrollRef, containerWidth] = useElementWidth<HTMLDivElement>();
 
-  const totalDays = rangeSpanDays(roadmap.period);
+  const totalDays = rangeSpanBusinessDays(roadmap.period);
   const labelWidth = containerWidth > 0 && containerWidth < 768 ? 150 : 220;
 
   // Stretch the grid to fill the container, but never below the readable minimum.
@@ -94,7 +99,7 @@ export function TimelineView({
     const offsets: number[] = [];
     let x = 0;
     for (const cell of rulerCells) {
-      x += rangeSpanDays(cell) * dayWidth;
+      x += rangeSpanBusinessDays(cell) * dayWidth;
       offsets.push(x);
     }
     return offsets.slice(0, -1);
@@ -136,8 +141,8 @@ export function TimelineView({
       }
       if (dayDelta !== 0) {
         updateEpic(epic.id, {
-          startDate: addDaysISO(epic.startDate, dayDelta),
-          endDate: addDaysISO(epic.endDate, dayDelta),
+          startDate: addBusinessDaysISO(epic.startDate, dayDelta),
+          endDate: addBusinessDaysISO(epic.endDate, dayDelta),
         });
       }
     } else {
@@ -154,8 +159,8 @@ export function TimelineView({
       }
       if (dayDelta !== 0) {
         updateInitiative(initiative.id, {
-          startDate: addDaysISO(initiative.startDate, dayDelta),
-          endDate: addDaysISO(initiative.endDate, dayDelta),
+          startDate: addBusinessDaysISO(initiative.startDate, dayDelta),
+          endDate: addBusinessDaysISO(initiative.endDate, dayDelta),
         });
       }
     }
@@ -223,7 +228,7 @@ export function TimelineView({
                   {rulerCells.map((cell, index) => (
                     <div
                       key={cell.startDate}
-                      style={{ width: rangeSpanDays(cell) * dayWidth }}
+                      style={{ width: rangeSpanBusinessDays(cell) * dayWidth }}
                       className={`${styles.rulerCell} ${index % 2 === 1 ? styles.rulerCellAlt : ''}`}
                       title={cell.label}
                     >

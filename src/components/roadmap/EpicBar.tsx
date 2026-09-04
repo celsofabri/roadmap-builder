@@ -3,7 +3,12 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic } from '@/types/roadmap.types';
-import { addDaysISO, diffInDaysISO, formatShortDateLabel, rangeSpanDays } from '@/utils/dateUtils';
+import {
+  addBusinessDaysISO,
+  businessDaysBetweenISO,
+  formatShortDateLabel,
+  rangeSpanBusinessDays,
+} from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import styles from './EpicBar.module.scss';
@@ -39,8 +44,8 @@ export function EpicBar({
   });
 
   const display = preview ?? epic;
-  const left = diffInDaysISO(periodStart, display.startDate) * dayWidth;
-  const width = Math.max(rangeSpanDays(display) * dayWidth, 14);
+  const left = businessDaysBetweenISO(periodStart, display.startDate) * dayWidth;
+  const width = Math.max(rangeSpanBusinessDays(display) * dayWidth, 14);
   const tooltip = [
     epic.title,
     `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
@@ -62,10 +67,10 @@ export function EpicBar({
       const deltaDays = Math.round(deltaPx / dayWidth / snapDays) * snapDays;
       let next: { startDate: string; endDate: string };
       if (edge === 'start') {
-        const newStart = addDaysISO(initialStart, deltaDays);
+        const newStart = addBusinessDaysISO(initialStart, deltaDays);
         next = { startDate: newStart > initialEnd ? initialEnd : newStart, endDate: initialEnd };
       } else {
-        const newEnd = addDaysISO(initialEnd, deltaDays);
+        const newEnd = addBusinessDaysISO(initialEnd, deltaDays);
         next = { startDate: initialStart, endDate: newEnd < initialStart ? initialStart : newEnd };
       }
       previewRef.current = next;

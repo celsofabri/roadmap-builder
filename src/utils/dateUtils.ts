@@ -1,11 +1,14 @@
 import {
+  addBusinessDays,
   addDays,
   addMonths,
+  differenceInBusinessDays,
   differenceInCalendarDays,
   eachMonthOfInterval,
   eachWeekOfInterval,
   endOfMonth,
   format,
+  isWeekend,
   parseISO,
   startOfMonth,
   startOfWeek,
@@ -96,6 +99,36 @@ export function diffInDaysISO(a: string, b: string): number {
   return differenceInCalendarDays(fromISODate(b), fromISODate(a));
 }
 
+/**
+ * Number of business days (Mon–Fri) between two ISO dates (b - a). `b`
+ * itself only counts if it's a weekday — a weekend `b` contributes nothing,
+ * same as `a` landing on a weekend contributes nothing beyond the weekdays
+ * already between them. Used to lay bars out on a timeline where weekends
+ * take up no space, instead of a calendar-day grid.
+ */
+export function businessDaysBetweenISO(a: string, b: string): number {
+  return differenceInBusinessDays(fromISODate(b), fromISODate(a));
+}
+
+/**
+ * Number of business days spanned by the range, inclusive of both ends.
+ * A range ending on a weekend doesn't get an extra day added for it — see
+ * `businessDaysBetweenISO`.
+ */
+export function rangeSpanBusinessDays(range: DateRange): number {
+  const end = fromISODate(range.endDate);
+  return businessDaysBetweenISO(range.startDate, range.endDate) + (isWeekend(end) ? 0 : 1);
+}
+
+/**
+ * Adds `amount` business days (skipping weekends) to an ISO date. If `iso`
+ * itself falls on a weekend and `amount` is 0, it's returned unchanged —
+ * weekend dates the user explicitly chose are preserved, not snapped away.
+ */
+export function addBusinessDaysISO(iso: string, amount: number): string {
+  return toISODate(addBusinessDays(fromISODate(iso), amount));
+}
+
 export function formatMonthLabel(date: Date): string {
   return format(date, 'MMM yyyy', { locale: ptBR });
 }
@@ -138,7 +171,7 @@ export function buildRulerCells(period: DateRange, granularity: Granularity): Ru
   });
 }
 
-/** Snap-grid increment, in days, for the given granularity. */
+/** Snap-grid increment, in business days, for the given granularity. */
 export function snapUnitDays(granularity: Granularity): number {
-  return granularity === 'monthly' ? 7 : 1;
+  return granularity === 'monthly' ? 5 : 1;
 }
