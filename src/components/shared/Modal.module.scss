@@ -13,6 +13,10 @@
   backdrop-filter: blur(3px);
   animation: fade 140ms ease;
 
+  &.overlayClosing {
+    animation: fadeOut 140ms ease forwards;
+  }
+
   @include m.below(v.$bp-md) {
     align-items: flex-end;
     padding: 0;
@@ -28,6 +32,10 @@
   border-radius: v.$r-xl;
   box-shadow: v.$shadow-lg;
   animation: rise 160ms cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  &.panelClosing {
+    animation: sink 140ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  }
 
   @include m.below(v.$bp-md) {
     max-width: none;
@@ -81,5 +89,25 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sink {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
   }
 }
