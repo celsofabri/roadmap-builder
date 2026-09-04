@@ -8,7 +8,7 @@ import {
   type Modifier,
 } from '@dnd-kit/core';
 import { useRoadmapStore } from '@/store/roadmapStore';
-import type { Epic, Granularity, Initiative, Roadmap } from '@/types/roadmap.types';
+import type { Epic, Granularity, Initiative, Roadmap, Status } from '@/types/roadmap.types';
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
 import {
   addBusinessDaysISO,
@@ -138,17 +138,22 @@ export function TimelineView({
     return offsets.slice(0, -1);
   }, [rulerCells, dayWidth]);
 
-  const usedStatuses = useMemo(() => {
-    const set = new Set<string>();
+  const statusCounts = useMemo(() => {
+    const counts = new Map<Status, number>();
     for (const objective of roadmap.objectives) {
       for (const epic of objective.epics) {
-        if (epic.status) set.add(epic.status);
+        if (epic.status) counts.set(epic.status, (counts.get(epic.status) ?? 0) + 1);
         for (const initiative of epic.initiatives) {
-          if (initiative.status) set.add(initiative.status);
+          if (initiative.status) {
+            counts.set(initiative.status, (counts.get(initiative.status) ?? 0) + 1);
+          }
         }
       }
     }
-    return STATUS_OPTIONS.filter((o) => set.has(o.value)).map((o) => o.value);
+    return STATUS_OPTIONS.filter((o) => counts.has(o.value)).map((o) => ({
+      status: o.value,
+      count: counts.get(o.value) as number,
+    }));
   }, [roadmap.objectives]);
 
   function handleDragEnd(event: DragEndEvent) {
@@ -203,8 +208,10 @@ export function TimelineView({
     <div className={styles.wrapper}>
       <div className={styles.toolbar}>
         <div className={styles.legend}>
-          {usedStatuses.length > 0 ? (
-            usedStatuses.map((status) => <StatusBadge key={status} status={status} />)
+          {statusCounts.length > 0 ? (
+            statusCounts.map(({ status, count }) => (
+              <StatusBadge key={status} status={status} count={count} />
+            ))
           ) : (
             <span className={styles.toolbarLeft}>Arraste as barras para ajustar datas</span>
           )}

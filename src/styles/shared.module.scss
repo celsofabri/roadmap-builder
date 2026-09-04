@@ -239,6 +239,18 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 
+/// How many items share a status — shown as a mini counter inside the badge (e.g. in a legend).
+.badgeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  padding: 0 0.3rem;
+  border-radius: v.$r-pill;
+  background: rgba(0, 0, 0, 0.12);
+  font-variant-numeric: tabular-nums;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
