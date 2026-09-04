@@ -97,6 +97,10 @@
   align-items: center;
   gap: 0.4rem;
   flex-shrink: 0;
+  // The tabs sit flush against the header's border-bottom by design (their
+  // active underline lines up with it) — this button isn't a tab, so it gets
+  // its own breathing room instead of touching that border too.
+  margin-bottom: 0.75rem;
   padding: 0.4rem 0.65rem;
   border-radius: v.$r-md;
   border: 1px solid v.$border-strong;
@@ -206,7 +210,9 @@
 
 .objectiveTitleRow {
   display: flex;
-  align-items: center;
+  // flex-start (not center) so the dot lines up with the first line when the
+  // title wraps to more than one line instead of getting truncated.
+  align-items: flex-start;
   gap: 0.5rem;
   min-width: 0;
 }
@@ -214,12 +220,13 @@
 .objectiveDot {
   width: 9px;
   height: 9px;
+  margin-top: 7px;
   flex-shrink: 0;
   border-radius: v.$r-pill;
 }
 
 .objectiveTitle {
-  @include m.truncate;
+  overflow-wrap: anywhere;
   font-size: v.$f-md;
   font-weight: 600;
   letter-spacing: -0.01em;

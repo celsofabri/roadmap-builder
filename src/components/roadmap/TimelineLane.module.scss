@@ -1,6 +1,10 @@
 @use '../../styles/variables' as v;
 @use '../../styles/mixins' as m;
 
+// Dot width + .laneLabelRow gap — everything below the title (meta, owners,
+// "+ Épico") indents by this so it lines up with the title's text, not the dot.
+$label-indent: calc(8px + 0.45rem);
+
 .lane {
   display: flex;
   position: relative;
@@ -28,7 +32,9 @@
 
 .laneLabelRow {
   display: flex;
-  align-items: center;
+  // flex-start (not center) so the dot lines up with the first line when the
+  // title wraps to more than one line instead of getting truncated.
+  align-items: flex-start;
   gap: 0.45rem;
   min-width: 0;
 }
@@ -36,12 +42,13 @@
 .laneDot {
   width: 8px;
   height: 8px;
+  margin-top: 5px;
   flex-shrink: 0;
   border-radius: v.$r-pill;
 }
 
 .laneTitle {
-  @include m.truncate;
+  overflow-wrap: anywhere;
   font-size: v.$f-base;
   font-weight: 500;
   color: v.$text;
@@ -49,6 +56,7 @@
 
 .laneMeta {
   margin-top: 1px;
+  margin-left: $label-indent;
   font-size: v.$f-2xs;
   color: v.$text-subtle;
 }
@@ -58,6 +66,7 @@
   flex-wrap: wrap;
   gap: 3px;
   margin-top: 4px;
+  margin-left: $label-indent;
 }
 
 // Background/color are set inline per person via ownerColor().
@@ -76,7 +85,8 @@
   gap: 0.3rem;
   margin-top: 0.4rem;
   padding: 0.15rem 0.35rem;
-  margin-left: -0.35rem;
+  // Its own left padding eats into the indent, so subtract it back out.
+  margin-left: calc(#{$label-indent} - 0.35rem);
   border-radius: v.$r-xs;
   font-size: v.$f-xs;
   font-weight: 500;
