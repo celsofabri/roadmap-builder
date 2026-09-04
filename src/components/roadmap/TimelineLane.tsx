@@ -8,14 +8,18 @@ import { InfoIcon, PlusIcon } from '@/components/shared/Icon';
 import { businessDaysBetweenISO, rangeSpanBusinessDays } from '@/utils/dateUtils';
 import { packIntoRows } from '@/utils/packIntoRows';
 import { ownerColor } from '@/utils/ownerAvatar';
+import { lightenColor } from '@/utils/color';
 import styles from './TimelineLane.module.scss';
 
-/** Kept in sync with `.initiativeRow` height / gap in the stylesheet. */
-const INITIATIVE_ROW_H = 18;
-const INITIATIVE_ROW_GAP = 3;
+/** How much lighter initiative bars are than their epic's own color — keeps the two visually distinct. */
+const INITIATIVE_LIGHTEN = 0.42;
+
+/** Kept in sync with `.slot` height in InitiativeBar.module.scss. */
+const INITIATIVE_ROW_H = 24;
+const INITIATIVE_ROW_GAP = 4;
 
 /** Kept in sync with `.addInitiativeBtn` width in the stylesheet. */
-const ADD_BTN_W = 20;
+const ADD_BTN_W = 22;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -63,6 +67,7 @@ function EpicRow({
   onAddInitiative,
 }: EpicRowProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `epic-lane:${epic.id}` });
+  const initiativeColor = useMemo(() => lightenColor(color, INITIATIVE_LIGHTEN), [color]);
 
   // Overlapping initiatives are stacked instead of drawn on top of each other.
   const { placements, rowCount } = useMemo(() => packIntoRows(epic.initiatives), [epic.initiatives]);
@@ -103,7 +108,7 @@ function EpicRow({
           title={`Adicionar iniciativa em "${epic.title}"`}
           aria-label={`Adicionar iniciativa em ${epic.title}`}
         >
-          <PlusIcon size={12} />
+          <PlusIcon size={13} />
         </button>
       </div>
 
@@ -117,7 +122,7 @@ function EpicRow({
             key={item.id}
             initiative={item}
             epicId={epic.id}
-            color={color}
+            color={initiativeColor}
             showOwner={showOwners}
             dayWidth={dayWidth}
             snapDays={snapDays}

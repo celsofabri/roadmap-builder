@@ -11,6 +11,7 @@ import {
 } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { contrastTextColor } from '@/utils/color';
 import styles from './InitiativeBar.module.scss';
 
 interface InitiativeBarProps {
@@ -49,6 +50,9 @@ export function InitiativeBar({
   const display = preview ?? initiative;
   const left = businessDaysBetweenISO(periodStart, display.startDate) * dayWidth;
   const width = Math.max(rangeSpanBusinessDays(display) * dayWidth, 12);
+  // Initiative bars use a lightened tint of the epic's color, which can turn
+  // pale enough that white text stops being legible — pick dark text then.
+  const textColor = contrastTextColor(color);
   const tooltip = [
     initiative.title,
     `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
@@ -101,10 +105,11 @@ export function InitiativeBar({
         className={styles.bar}
         style={{
           backgroundColor: color,
+          color: textColor,
           transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
           boxShadow: isDragging ? '0 4px 10px rgba(20, 25, 43, 0.3)' : undefined,
           zIndex: isDragging ? 20 : 1,
-          opacity: isDragging ? 0.9 : 0.82,
+          opacity: isDragging ? 0.95 : 1,
         }}
       >
         <button
@@ -116,7 +121,7 @@ export function InitiativeBar({
           title={tooltip}
         >
           {showOwner && initiative.owner && (
-            <OwnerAvatar name={initiative.owner} size={13} className={styles.ownerAvatar} />
+            <OwnerAvatar name={initiative.owner} size={16} className={styles.ownerAvatar} />
           )}
           <span className={styles.label}>{initiative.title}</span>
           {initiative.status && (

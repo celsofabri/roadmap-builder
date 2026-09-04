@@ -154,28 +154,30 @@ $label-indent: calc(8px + 0.45rem);
 
 .epicRow {
   & + & {
-    margin-top: 0.375rem;
+    margin-top: 0.5rem;
   }
 }
 
+// Must fit EpicBar's `.slot` (top: 2px, height: 32px) plus a couple px of
+// breathing room above/below.
 .epicBarSlot {
   position: relative;
-  height: 30px;
+  height: 36px;
 }
 
 /// Hover-revealed "+" that adds an initiative to the epic it sits next to.
 .addInitiativeBtn {
   @include m.reset-button;
   position: absolute;
-  top: 5px;
+  top: 8px;
   // Above EpicBar's inline z-index: 1, so it stays clickable when it has to
   // tuck inside a bar that spans the full timeline.
   z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px; // must match ADD_BTN_W in TimelineLane.tsx
-  height: 20px;
+  width: 22px; // must match ADD_BTN_W in TimelineLane.tsx
+  height: 22px;
   border-radius: v.$r-xs;
   border: 1px dashed v.$border-strong;
   background: v.$surface;

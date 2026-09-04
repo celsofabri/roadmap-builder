@@ -113,7 +113,7 @@ export function EpicBar({
           title={tooltip}
         >
           {showOwner && epic.owner && (
-            <OwnerAvatar name={epic.owner} size={16} className={styles.ownerAvatar} />
+            <OwnerAvatar name={epic.owner} size={18} className={styles.ownerAvatar} />
           )}
           <span className={styles.label}>{epic.title}</span>
           {epic.status && (
