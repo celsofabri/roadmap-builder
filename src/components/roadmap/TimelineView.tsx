@@ -12,16 +12,30 @@ import type { Epic, Granularity, Initiative, Roadmap } from '@/types/roadmap.typ
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
 import {
   addBusinessDaysISO,
+  businessDaysBetweenISO,
   buildRulerCells,
+  formatShortYearLabel,
   rangeSpanBusinessDays,
   snapUnitDays,
+  todayISO,
 } from '@/utils/dateUtils';
 import { useElementWidth } from '@/utils/useElementWidth';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
-import { PlusIcon } from '@/components/shared/Icon';
+import { CalendarIcon, PlusIcon } from '@/components/shared/Icon';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import sharedStyles from '@/styles/shared.module.scss';
 import styles from './TimelineView.module.scss';
+
+const SHOW_TODAY_LINE_KEY = 'roadmap-builder:show-today-line';
+
+function readShowTodayLine(): boolean {
+  try {
+    const stored = localStorage.getItem(SHOW_TODAY_LINE_KEY);
+    return stored === null ? true : stored === '1';
+  } catch {
+    return true;
+  }
+}
 
 interface TimelineViewProps {
   roadmap: Roadmap;
@@ -61,6 +75,7 @@ export function TimelineView({
   onAddInitiative,
 }: TimelineViewProps) {
   const [granularity, setGranularity] = useState<Granularity>('monthly');
+  const [showTodayLine, setShowTodayLine] = useState(readShowTodayLine);
   const moveEpic = useRoadmapStore((s) => s.moveEpic);
   const updateEpic = useRoadmapStore((s) => s.updateEpic);
   const moveInitiative = useRoadmapStore((s) => s.moveInitiative);
@@ -81,6 +96,23 @@ export function TimelineView({
     () => buildRulerCells(roadmap.period, granularity),
     [roadmap.period, granularity],
   );
+
+  // Today's marker — hidden entirely when today falls outside the roadmap's own period.
+  const today = todayISO();
+  const todayInPeriod = today >= roadmap.period.startDate && today <= roadmap.period.endDate;
+  const todayLeft = labelWidth + businessDaysBetweenISO(roadmap.period.startDate, today) * dayWidth;
+
+  function toggleShowTodayLine() {
+    setShowTodayLine((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SHOW_TODAY_LINE_KEY, next ? '1' : '0');
+      } catch {
+        // Private-mode browsers can reject writes; the toggle still works for this session.
+      }
+      return next;
+    });
+  }
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -178,23 +210,42 @@ export function TimelineView({
           )}
         </div>
 
-        <div className={styles.segmented} role="group" aria-label="Granularidade da timeline">
+        <div className={styles.toolbarRight}>
           <button
             type="button"
-            onClick={() => setGranularity('monthly')}
-            aria-pressed={granularity === 'monthly'}
-            className={`${styles.segment} ${granularity === 'monthly' ? styles.segmentActive : ''}`}
+            onClick={toggleShowTodayLine}
+            aria-pressed={showTodayLine}
+            title={
+              todayInPeriod
+                ? showTodayLine
+                  ? 'Ocultar indicador de hoje'
+                  : 'Mostrar indicador de hoje'
+                : 'A data de hoje está fora do período deste roadmap'
+            }
+            className={`${styles.todayToggle} ${showTodayLine ? styles.todayToggleActive : ''}`}
           >
-            Mensal
+            <CalendarIcon size={14} />
+            Indicador de hoje
           </button>
-          <button
-            type="button"
-            onClick={() => setGranularity('weekly')}
-            aria-pressed={granularity === 'weekly'}
-            className={`${styles.segment} ${granularity === 'weekly' ? styles.segmentActive : ''}`}
-          >
-            Semanal
-          </button>
+
+          <div className={styles.segmented} role="group" aria-label="Granularidade da timeline">
+            <button
+              type="button"
+              onClick={() => setGranularity('monthly')}
+              aria-pressed={granularity === 'monthly'}
+              className={`${styles.segment} ${granularity === 'monthly' ? styles.segmentActive : ''}`}
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              onClick={() => setGranularity('weekly')}
+              aria-pressed={granularity === 'weekly'}
+              className={`${styles.segment} ${granularity === 'weekly' ? styles.segmentActive : ''}`}
+            >
+              Semanal
+            </button>
+          </div>
         </div>
       </div>
 
@@ -213,7 +264,11 @@ export function TimelineView({
         <>
           <div className={styles.scrollArea} ref={scrollRef}>
             <div className={styles.grid} style={{ width: labelWidth + timelineWidth }}>
-              <div className={styles.rulerRow}>
+              <div
+                className={`${styles.rulerRow} ${
+                  showTodayLine && todayInPeriod ? styles.rulerRowWithToday : ''
+                }`}
+              >
                 <div className={styles.rulerGutter} style={{ width: labelWidth }}>
                   Objetivo
                 </div>
@@ -257,6 +312,12 @@ export function TimelineView({
                   ))}
                 </DndContext>
               </div>
+
+              {showTodayLine && todayInPeriod && (
+                <div className={styles.todayLine} style={{ left: todayLeft }}>
+                  <span className={styles.todayLabel}>{formatShortYearLabel(today)}</span>
+                </div>
+              )}
             </div>
           </div>
 

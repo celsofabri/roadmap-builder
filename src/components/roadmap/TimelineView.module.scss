@@ -1,6 +1,11 @@
 @use '../../styles/variables' as v;
 @use '../../styles/mixins' as m;
 
+// Distinct from every status color (planned/in_progress/overdue/done/blocked)
+// so the "today" marker never reads as a status.
+$today-color: #db2777;
+$today-soft: #fce7f3;
+
 .wrapper {
   @include m.card;
   overflow: hidden;
@@ -32,6 +37,48 @@
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.todayToggle {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: v.$r-md;
+  border: 1px solid v.$border-strong;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
+  transition:
+    background-color v.$transition,
+    color v.$transition,
+    border-color v.$transition;
+
+  &:hover {
+    color: v.$text;
+    background: v.$surface;
+  }
+
+  @include m.focus-ring;
+}
+
+.todayToggleActive {
+  color: $today-color;
+  border-color: $today-color;
+  background: $today-soft;
+
+  &:hover {
+    color: $today-color;
+    background: $today-soft;
+  }
 }
 
 .segmented {
@@ -78,6 +125,7 @@
 }
 
 .grid {
+  position: relative;
   min-width: min-content;
 }
 
@@ -88,6 +136,12 @@
   z-index: 15;
   background: v.$surface;
   border-bottom: 1px solid v.$border;
+}
+
+// Reserves a strip above the cell/gutter text for the today marker's date
+// tag, so it never overlaps the month/week label.
+.rulerRowWithToday {
+  padding-top: 20px;
 }
 
 .rulerGutter {
@@ -159,6 +213,35 @@
   width: 1px;
   background: v.$border;
   opacity: 0.7;
+}
+
+/// Vertical marker at today's position, spanning the ruler and every lane.
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 16; // above .rulerRow's sticky z-index:15, so the label stays visible
+  width: 2px;
+  background: $today-color;
+  pointer-events: none;
+}
+
+.todayLabel {
+  position: absolute;
+  // Sits in the strip .rulerRowWithToday reserves above the ruler cell text,
+  // centered on the (2px-wide) line rather than hanging off one side of it.
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.45rem;
+  border-radius: v.$r-pill;
+  background: $today-color;
+  color: #fff;
+  font-size: v.$f-2xs;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: v.$shadow-xs;
 }
 
 .empty {

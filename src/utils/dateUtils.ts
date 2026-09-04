@@ -30,6 +30,11 @@ export function fromISODate(iso: string): Date {
   return parseISO(iso);
 }
 
+/** Today's date, as an ISO "civil" date — recomputed on every call, never cached. */
+export function todayISO(): string {
+  return toISODate(new Date());
+}
+
 export function monthStartISO(date: Date): string {
   return toISODate(startOfMonth(date));
 }
@@ -139,6 +144,11 @@ export function formatDateLabel(iso: string): string {
 
 export function formatShortDateLabel(iso: string): string {
   return format(fromISODate(iso), 'dd/MM/yyyy', { locale: ptBR });
+}
+
+/** Same as `formatShortDateLabel`, but with a 2-digit year — for tight spaces like the today marker. */
+export function formatShortYearLabel(iso: string): string {
+  return format(fromISODate(iso), 'dd/MM/yy', { locale: ptBR });
 }
 
 export interface RulerCell {
