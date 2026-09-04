@@ -39,6 +39,8 @@ export interface Objective {
 
 export interface Roadmap {
   id: string;
+  /** Workspace (team) this roadmap belongs to. */
+  workspaceId: string;
   name: string;
   description?: string;
   period: Period;
@@ -49,9 +51,27 @@ export interface Roadmap {
 
 export interface RoadmapSummary {
   id: string;
+  workspaceId: string;
   name: string;
   period: Period;
   objectiveCount: number;
   epicCount: number;
+  updatedAt: string;
+}
+
+/** A workspace groups the roadmaps of a single team. */
+export interface Workspace {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceSummary {
+  id: string;
+  name: string;
+  description?: string;
+  roadmapCount: number;
   updatedAt: string;
 }

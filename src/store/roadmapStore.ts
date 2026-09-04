@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { storageService } from '@/services/storageService';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import type {
   Epic,
   Initiative,
@@ -92,13 +93,17 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
   activeRoadmap: null,
 
   loadRoadmaps: () => {
-    set({ roadmaps: storageService.listRoadmaps() });
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    set({ roadmaps: workspaceId ? storageService.listRoadmaps(workspaceId) : [] });
   },
 
   createRoadmap: (input) => {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) throw new Error('Nenhum workspace ativo.');
     const timestamp = now();
     const roadmap: Roadmap = {
       id: crypto.randomUUID(),
+      workspaceId,
       name: input.name,
       description: input.description,
       period: input.period,
@@ -107,7 +112,7 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
       updatedAt: timestamp,
     };
     storageService.saveRoadmap(roadmap);
-    set({ roadmaps: storageService.listRoadmaps() });
+    set({ roadmaps: storageService.listRoadmaps(workspaceId) });
     return roadmap;
   },
 
@@ -130,28 +135,33 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
     storageService.saveRoadmap(updated);
     const active = get().activeRoadmap;
     set({
-      roadmaps: storageService.listRoadmaps(),
+      roadmaps: storageService.listRoadmaps(updated.workspaceId),
       activeRoadmap: active?.id === id ? updated : active,
     });
   },
 
   deleteRoadmap: (id) => {
+    const roadmap = storageService.getRoadmap(id);
+    if (!roadmap) return;
     storageService.deleteRoadmap(id);
     const active = get().activeRoadmap;
     set({
-      roadmaps: storageService.listRoadmaps(),
+      roadmaps: storageService.listRoadmaps(roadmap.workspaceId),
       activeRoadmap: active?.id === id ? null : active,
     });
   },
 
   duplicateRoadmap: (id) => {
-    storageService.duplicateRoadmap(id);
-    set({ roadmaps: storageService.listRoadmaps() });
+    const duplicate = storageService.duplicateRoadmap(id);
+    if (!duplicate) return;
+    set({ roadmaps: storageService.listRoadmaps(duplicate.workspaceId) });
   },
 
   importRoadmap: (roadmap) => {
-    storageService.saveRoadmap(roadmap);
-    set({ roadmaps: storageService.listRoadmaps() });
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) return;
+    storageService.saveRoadmap({ ...roadmap, workspaceId });
+    set({ roadmaps: storageService.listRoadmaps(workspaceId) });
   },
 
   addObjective: (input) => {
@@ -342,5 +352,5 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
 
 function persist(set: (partial: Partial<RoadmapStoreState>) => void, roadmap: Roadmap): void {
   storageService.saveRoadmap(roadmap);
-  set({ activeRoadmap: roadmap, roadmaps: storageService.listRoadmaps() });
+  set({ activeRoadmap: roadmap, roadmaps: storageService.listRoadmaps(roadmap.workspaceId) });
 }

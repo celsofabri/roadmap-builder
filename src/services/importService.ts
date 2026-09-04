@@ -40,7 +40,9 @@ export async function importRoadmapsFromFile(file: File): Promise<ImportResult> 
       };
     }
     // Regenerate every id to avoid collisions with roadmaps already stored locally.
-    roadmaps.push(regenerateRoadmapIds(result.data));
+    // workspaceId is reassigned to the active workspace by roadmapStore.importRoadmap(),
+    // so an older export that predates workspaces just needs a placeholder here.
+    roadmaps.push(regenerateRoadmapIds({ ...result.data, workspaceId: result.data.workspaceId ?? '' }));
   }
 
   return { success: true, roadmaps };

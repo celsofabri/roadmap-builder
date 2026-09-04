@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRoadmapStore } from '@/store/roadmapStore';
-import { storageService } from '@/services/storageService';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RoadmapDetail } from '@/components/roadmap/RoadmapDetail';
 import { EmptyWorkspace } from '@/components/layout/EmptyWorkspace';
@@ -21,13 +21,23 @@ function readCollapsed(): boolean {
 function App() {
   const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
   const loadRoadmaps = useRoadmapStore((s) => s.loadRoadmaps);
+  const closeRoadmap = useRoadmapStore((s) => s.closeRoadmap);
+  const loadWorkspaces = useWorkspaceStore((s) => s.loadWorkspaces);
+  const activeWorkspaceId = useWorkspaceStore((s) => s.activeWorkspaceId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
-    storageService.seedIfNeeded();
+    loadWorkspaces();
+  }, [loadWorkspaces]);
+
+  // Re-scope the roadmap list (and drop whatever was open) whenever the
+  // active workspace changes, including on the very first load.
+  useEffect(() => {
+    if (!activeWorkspaceId) return;
     loadRoadmaps();
-  }, [loadRoadmaps]);
+    closeRoadmap();
+  }, [activeWorkspaceId, loadRoadmaps, closeRoadmap]);
 
   function toggleCollapsed() {
     setCollapsed((prev) => {

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRoadmapStore } from '@/store/roadmapStore';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { RoadmapForm } from '@/components/roadmap/RoadmapForm';
+import { WorkspaceSwitcher } from '@/components/layout/WorkspaceSwitcher';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { storageService } from '@/services/storageService';
 import { exportService } from '@/services/exportService';
@@ -41,6 +43,7 @@ function initialsOf(name: string): string {
 export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps) {
   const roadmaps = useRoadmapStore((s) => s.roadmaps);
   const activeRoadmap = useRoadmapStore((s) => s.activeRoadmap);
+  const activeWorkspaceId = useWorkspaceStore((s) => s.activeWorkspaceId);
   const createRoadmap = useRoadmapStore((s) => s.createRoadmap);
   const openRoadmap = useRoadmapStore((s) => s.openRoadmap);
   const renameRoadmap = useRoadmapStore((s) => s.renameRoadmap);
@@ -161,6 +164,8 @@ export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps)
           <ExpandIcon size={17} />
         </button>
 
+        <WorkspaceSwitcher collapsed onRequestExpand={onToggleCollapsed} />
+
         <button
           type="button"
           className={`${styles.newButton} ${styles.newButtonCollapsed}`}
@@ -197,9 +202,11 @@ export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps)
           <button
             type="button"
             className={`${styles.footerButton} ${styles.footerButtonCollapsed}`}
-            onClick={() => exportService.exportAll(storageService.getAllRoadmaps())}
-            title="Exportar todos os roadmaps"
-            aria-label="Exportar todos os roadmaps"
+            onClick={() =>
+              exportService.exportAll(storageService.getAllRoadmaps(activeWorkspaceId ?? undefined))
+            }
+            title="Exportar roadmaps deste workspace"
+            aria-label="Exportar roadmaps deste workspace"
           >
             <DownloadIcon size={14} />
           </button>
@@ -254,6 +261,8 @@ export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps)
           <CloseIcon size={16} />
         </button>
       </div>
+
+      <WorkspaceSwitcher />
 
       <button type="button" className={styles.newButton} onClick={() => setShowCreateForm(true)}>
         <PlusIcon size={15} />
@@ -404,8 +413,10 @@ export function Sidebar({ onClose, collapsed, onToggleCollapsed }: SidebarProps)
         <button
           type="button"
           className={styles.footerButton}
-          onClick={() => exportService.exportAll(storageService.getAllRoadmaps())}
-          title="Exportar todos os roadmaps"
+          onClick={() =>
+            exportService.exportAll(storageService.getAllRoadmaps(activeWorkspaceId ?? undefined))
+          }
+          title="Exportar roadmaps deste workspace"
         >
           <DownloadIcon size={14} />
           Exportar

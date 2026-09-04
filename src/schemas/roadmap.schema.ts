@@ -62,6 +62,11 @@ export const roadmapMetaInputSchema = z.object({
   period: periodSchema,
 });
 
+export const workspaceInputSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+});
+
 // Persisted-entity schemas (include id / children), used for JSON import.
 export const initiativeSchema = withDateOrder(
   initiativeBaseSchema.extend({ id: z.string().min(1) }),
@@ -81,6 +86,9 @@ export const objectiveSchema = objectiveBaseSchema.extend({
 
 export const roadmapSchema = z.object({
   id: z.string().min(1),
+  // Optional so JSON exported before workspaces existed can still be imported —
+  // importRoadmap() always reassigns it to the currently active workspace anyway.
+  workspaceId: z.string().optional(),
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   period: periodSchema,

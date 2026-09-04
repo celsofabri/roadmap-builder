@@ -1,15 +1,32 @@
-import type { Roadmap } from '@/types/roadmap.types';
+import type { Roadmap, Workspace } from '@/types/roadmap.types';
 
 function uid(): string {
   return crypto.randomUUID();
 }
 
-export function buildSeedRoadmaps(): Roadmap[] {
+export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Roadmap[] } {
   const timestamp = new Date().toISOString();
+
+  const platformWorkspace: Workspace = {
+    id: uid(),
+    name: 'Plataforma',
+    description: 'Confiabilidade, escalabilidade e infraestrutura.',
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+
+  const growthWorkspace: Workspace = {
+    id: uid(),
+    name: 'Growth',
+    description: 'Aquisição e ativação de novos usuários.',
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
 
   const platformRoadmap: Roadmap = {
     id: uid(),
-    name: 'Plataforma',
+    workspaceId: platformWorkspace.id,
+    name: 'Ano fiscal 2026',
     description: 'Roadmap do time de Plataforma para o ano fiscal.',
     period: { startDate: '2026-01-01', endDate: '2026-12-31' },
     createdAt: timestamp,
@@ -98,7 +115,8 @@ export function buildSeedRoadmaps(): Roadmap[] {
 
   const growthRoadmap: Roadmap = {
     id: uid(),
-    name: 'Growth',
+    workspaceId: growthWorkspace.id,
+    name: 'Segundo semestre 2026',
     description: 'Roadmap do time de Growth para o segundo semestre.',
     period: { startDate: '2026-06-01', endDate: '2027-05-31' },
     createdAt: timestamp,
@@ -130,5 +148,8 @@ export function buildSeedRoadmaps(): Roadmap[] {
     ],
   };
 
-  return [platformRoadmap, growthRoadmap];
+  return {
+    workspaces: [platformWorkspace, growthWorkspace],
+    roadmaps: [platformRoadmap, growthRoadmap],
+  };
 }

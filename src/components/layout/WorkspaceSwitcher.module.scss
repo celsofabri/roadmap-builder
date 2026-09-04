@@ -1,0 +1,279 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.root {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0 0.75rem 0.75rem;
+}
+
+// --- Trigger -----------------------------------------------------------
+
+.trigger {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: v.$r-md;
+  border: 1px solid v.$nav-border;
+  background: v.$nav-bg-raised;
+  transition: border-color v.$transition, background-color v.$transition;
+
+  &:hover {
+    background: v.$nav-hover;
+  }
+
+  @include m.focus-ring(#8f8ff5);
+}
+
+.triggerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: v.$r-sm;
+  background: linear-gradient(135deg, #6d6df0, #4a4ac4);
+  color: #fff;
+}
+
+.triggerText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.triggerName {
+  @include m.truncate;
+  font-size: v.$f-sm;
+  font-weight: 600;
+  color: v.$nav-text;
+}
+
+.triggerSub {
+  @include m.truncate;
+  font-size: v.$f-2xs;
+  color: v.$nav-text-muted;
+}
+
+.triggerChevron {
+  flex-shrink: 0;
+  color: v.$nav-text-muted;
+}
+
+// --- Collapsed rail ------------------------------------------------------
+
+.collapsedTrigger {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 0.75rem;
+  flex-shrink: 0;
+  border-radius: v.$r-md;
+  border: 1px solid v.$nav-border;
+  background: v.$nav-bg-raised;
+  color: v.$nav-text-muted;
+  transition: background-color v.$transition, color v.$transition;
+
+  &:hover {
+    background: v.$nav-hover;
+    color: v.$nav-text;
+  }
+
+  @include m.focus-ring(#8f8ff5);
+}
+
+// --- Dropdown panel --------------------------------------------------------
+
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 30;
+  padding: 6px;
+  border-radius: v.$r-md;
+  background: v.$surface;
+  border: 1px solid v.$border;
+  box-shadow: v.$shadow-pop;
+}
+
+.panelHeader {
+  padding: 0.3rem 0.5rem 0.4rem;
+  font-size: v.$f-2xs;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: v.$text-subtle;
+}
+
+.panelList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.panelItem {
+  position: relative;
+  border-radius: v.$r-sm;
+
+  &:hover {
+    background: v.$surface-sunken;
+  }
+}
+
+.panelItemButton {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 2rem 0.4rem 0.4rem;
+  border-radius: v.$r-sm;
+  text-align: left;
+
+  @include m.focus-ring;
+}
+
+.panelItemCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: v.$accent-text;
+}
+
+.panelItemText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panelItemName {
+  @include m.truncate;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text;
+}
+
+.panelItemMeta {
+  @include m.truncate;
+  font-size: v.$f-2xs;
+  color: v.$text-subtle;
+}
+
+.panelItemMenuButton {
+  @include m.reset-button;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: v.$r-sm;
+  color: v.$text-subtle;
+  opacity: 0;
+  transition: opacity v.$transition, background-color v.$transition;
+
+  .panelItem:hover &,
+  &[data-open='true'] {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: v.$surface-muted;
+    color: v.$text;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// --- Per-workspace menu ------------------------------------------------
+
+// Rendered in a portal to document.body (see WorkspaceSwitcher.tsx) with top/left
+// set inline in viewport coordinates, so it can't be clipped by the scrolling
+// panel list — `fixed` here, not `absolute` relative to some ancestor.
+.itemMenu {
+  position: fixed;
+  z-index: 1000;
+  width: 150px;
+  padding: 4px;
+  border-radius: v.$r-md;
+  background: v.$surface;
+  border: 1px solid v.$border;
+  box-shadow: v.$shadow-pop;
+}
+
+.itemMenuEntry {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: v.$r-sm;
+  font-size: v.$f-sm;
+  color: v.$text;
+  transition: background-color v.$transition;
+
+  &:hover {
+    background: v.$surface-sunken;
+  }
+}
+
+.itemMenuEntryDanger {
+  composes: itemMenuEntry;
+  color: v.$danger;
+
+  &:hover {
+    background: v.$danger-soft;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+// --- Create action -----------------------------------------------------
+
+.createButton {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 4px;
+  padding: 0.4rem 0.5rem;
+  border-radius: v.$r-sm;
+  border-top: 1px solid v.$border;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$accent-text;
+  transition: background-color v.$transition;
+
+  &:hover {
+    background: v.$surface-sunken;
+  }
+}

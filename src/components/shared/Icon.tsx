@@ -166,6 +166,12 @@ export const AlertIcon = ({ size = 14, className }: IconProps) =>
     </>,
   );
 
+export const CheckIcon = ({ size = 16, className }: IconProps) =>
+  base(size, className, <path d="M20 6 9 17l-5-5" />);
+
+export const ChevronDownIcon = ({ size = 16, className }: IconProps) =>
+  base(size, className, <path d="m6 9 6 6 6-6" />);
+
 export const MapIcon = ({ size = 20, className }: IconProps) =>
   base(
     size,
