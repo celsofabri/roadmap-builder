@@ -193,6 +193,16 @@ export const EyeOffIcon = ({ size = 16, className }: IconProps) =>
     </>,
   );
 
+export const InfoIcon = ({ size = 16, className }: IconProps) =>
+  base(
+    size,
+    className,
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </>,
+  );
+
 export const MapIcon = ({ size = 20, className }: IconProps) =>
   base(
     size,

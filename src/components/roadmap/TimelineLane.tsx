@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { EpicBar } from '@/components/roadmap/EpicBar';
 import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
-import { PlusIcon } from '@/components/shared/Icon';
+import { Modal } from '@/components/shared/Modal';
+import { InfoIcon, PlusIcon } from '@/components/shared/Icon';
 import { diffInDaysISO, rangeSpanDays } from '@/utils/dateUtils';
 import { packIntoRows } from '@/utils/packIntoRows';
 import { ownerColor } from '@/utils/ownerAvatar';
@@ -146,6 +147,7 @@ export function TimelineLane({
   const { setNodeRef, isOver } = useDroppable({ id: `objective-lane:${objective.id}` });
   const color = objective.color ?? '#8b93a7';
   const initiativeCount = objective.epics.reduce((sum, e) => sum + e.initiatives.length, 0);
+  const [showDescription, setShowDescription] = useState(false);
 
   return (
     <div className={styles.lane}>
@@ -155,7 +157,24 @@ export function TimelineLane({
           <span className={styles.laneTitle} title={objective.title}>
             {objective.title}
           </span>
+          {objective.description && (
+            <button
+              type="button"
+              className={styles.laneInfoButton}
+              onClick={() => setShowDescription(true)}
+              title="Ver descrição do objetivo"
+              aria-label={`Ver descrição de ${objective.title}`}
+            >
+              <InfoIcon size={13} />
+            </button>
+          )}
         </div>
+
+        {showDescription && objective.description && (
+          <Modal title={objective.title} onClose={() => setShowDescription(false)}>
+            <p className={styles.descriptionText}>{objective.description}</p>
+          </Modal>
+        )}
         <div className={styles.laneMeta}>
           {objective.epics.length} épico{objective.epics.length === 1 ? '' : 's'} ·{' '}
           {initiativeCount} iniciativa{initiativeCount === 1 ? '' : 's'}

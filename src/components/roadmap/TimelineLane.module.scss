@@ -54,6 +54,35 @@ $label-indent: calc(8px + 0.45rem);
   color: v.$text;
 }
 
+.laneInfoButton {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  border-radius: v.$r-pill;
+  color: v.$text-subtle;
+  transition:
+    color v.$transition,
+    background-color v.$transition;
+
+  &:hover {
+    color: v.$accent-text;
+    background: v.$accent-soft;
+  }
+
+  @include m.focus-ring;
+}
+
+.descriptionText {
+  font-size: v.$f-base;
+  color: v.$text-muted;
+  white-space: pre-wrap;
+}
+
 .laneMeta {
   margin-top: 1px;
   margin-left: $label-indent;
