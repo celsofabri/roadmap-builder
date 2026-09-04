@@ -70,6 +70,8 @@ export interface Workspace {
   id: string;
   name: string;
   description?: string;
+  /** Small square image (data URL) shown instead of the initials fallback. */
+  iconDataUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +80,7 @@ export interface WorkspaceSummary {
   id: string;
   name: string;
   description?: string;
+  iconDataUrl?: string;
   roadmapCount: number;
   updatedAt: string;
 }

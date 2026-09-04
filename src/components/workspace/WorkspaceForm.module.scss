@@ -1,0 +1,26 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.iconRow {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.iconPreview {
+  @include m.reset-button;
+  border-radius: v.$r-sm;
+  transition: filter v.$transition;
+
+  &:hover {
+    filter: brightness(0.94);
+  }
+
+  @include m.focus-ring;
+}
+
+.iconActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

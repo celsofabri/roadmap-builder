@@ -28,16 +28,9 @@
   @include m.focus-ring(#8f8ff5);
 }
 
+// Sizing/background/color come from WorkspaceIcon itself — this just adds depth.
 .triggerIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-  border-radius: v.$r-sm;
-  background: linear-gradient(135deg, #6d6df0, #4a4ac4);
-  color: #fff;
+  box-shadow: 0 1px 3px rgba(20, 25, 43, 0.35);
 }
 
 .triggerText {

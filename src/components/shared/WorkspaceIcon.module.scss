@@ -1,0 +1,17 @@
+@use '../../styles/variables' as v;
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: v.$r-sm;
+  object-fit: cover;
+}
+
+.fallback {
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}

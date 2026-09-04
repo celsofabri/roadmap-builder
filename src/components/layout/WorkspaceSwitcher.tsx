@@ -3,10 +3,10 @@ import { createPortal } from 'react-dom';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { WorkspaceForm } from '@/components/workspace/WorkspaceForm';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { WorkspaceIcon } from '@/components/shared/WorkspaceIcon';
 import {
   CheckIcon,
   ChevronDownIcon,
-  LayersIcon,
   MoreIcon,
   PencilIcon,
   PlusIcon,
@@ -46,9 +46,9 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
   const [open, setOpen] = useState(false);
   const [itemMenu, setItemMenu] = useState<ItemMenuPosition | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editing, setEditing] = useState<{ id: string; name: string; description?: string } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<
+    { id: string; name: string; description?: string; iconDataUrl?: string } | null
+  >(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -140,7 +140,7 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
         title={active ? `Workspace: ${active.name}` : 'Trocar workspace'}
         aria-label="Trocar workspace"
       >
-        <LayersIcon size={16} />
+        <WorkspaceIcon name={active?.name ?? 'Workspace'} iconDataUrl={active?.iconDataUrl} size={22} />
       </button>
     );
   }
@@ -157,9 +157,12 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className={styles.triggerIcon}>
-          <LayersIcon size={14} />
-        </span>
+        <WorkspaceIcon
+          name={active?.name ?? 'Workspace'}
+          iconDataUrl={active?.iconDataUrl}
+          size={26}
+          className={styles.triggerIcon}
+        />
         <span className={styles.triggerText}>
           <span className={styles.triggerName}>{active?.name ?? 'Workspace'}</span>
           <span className={styles.triggerSub}>
@@ -190,6 +193,7 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
                   <span className={styles.panelItemCheck}>
                     {ws.id === activeWorkspaceId && <CheckIcon size={14} />}
                   </span>
+                  <WorkspaceIcon name={ws.name} iconDataUrl={ws.iconDataUrl} size={22} />
                   <span className={styles.panelItemText}>
                     <span className={styles.panelItemName}>{ws.name}</span>
                     <span className={styles.panelItemMeta}>{roadmapLabel(ws.roadmapCount)}</span>
@@ -241,7 +245,12 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
                 role="menuitem"
                 className={styles.itemMenuEntry}
                 onClick={() => {
-                  setEditing({ id: ws.id, name: ws.name, description: ws.description });
+                  setEditing({
+                    id: ws.id,
+                    name: ws.name,
+                    description: ws.description,
+                    iconDataUrl: ws.iconDataUrl,
+                  });
                   setItemMenu(null);
                   setOpen(false);
                 }}

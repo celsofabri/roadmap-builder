@@ -125,6 +125,7 @@ export const storageService = {
         id: w.id,
         name: w.name,
         description: w.description,
+        iconDataUrl: w.iconDataUrl,
         roadmapCount: roadmaps.filter((r) => r.workspaceId === w.id).length,
         updatedAt: w.updatedAt,
       }))

@@ -1,3 +1,5 @@
+import { hashString } from '@/utils/stringHash';
+
 /** Deterministic per-person badge color, so the same name always renders the same everywhere. */
 const OWNER_PALETTE: { bg: string; text: string }[] = [
   { bg: '#e0e7ff', text: '#4338ca' },
@@ -9,14 +11,6 @@ const OWNER_PALETTE: { bg: string; text: string }[] = [
   { bg: '#ede9fe', text: '#6d28d9' },
   { bg: '#e0f2fe', text: '#0369a1' },
 ];
-
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash * 31 + value.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
 
 export function ownerColor(name: string): { bg: string; text: string } {
   return OWNER_PALETTE[hashString(name.trim().toLowerCase()) % OWNER_PALETTE.length];

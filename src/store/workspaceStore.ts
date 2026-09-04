@@ -5,6 +5,7 @@ import type { Workspace, WorkspaceSummary } from '@/types/roadmap.types';
 export interface WorkspaceInput {
   name: string;
   description?: string;
+  iconDataUrl?: string;
 }
 
 interface WorkspaceStoreState {
@@ -40,6 +41,7 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
       id: crypto.randomUUID(),
       name: input.name,
       description: input.description,
+      iconDataUrl: input.iconDataUrl,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
