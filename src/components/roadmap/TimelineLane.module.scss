@@ -10,10 +10,15 @@ $label-indent: calc(8px + 0.45rem);
   position: relative;
   z-index: 1;
   border-bottom: 1px solid v.$border;
+  transition: box-shadow v.$transition;
 
   &:last-child {
     border-bottom: none;
   }
+}
+
+.laneRowOver {
+  box-shadow: inset 0 2px 0 v.$accent;
 }
 
 .laneLabel {
@@ -37,6 +42,35 @@ $label-indent: calc(8px + 0.45rem);
   align-items: flex-start;
   gap: 0.45rem;
   min-width: 0;
+}
+
+.laneDragHandle {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border-radius: v.$r-sm;
+  color: v.$text-subtle;
+  cursor: grab;
+  touch-action: none;
+  transition:
+    color v.$transition,
+    background-color v.$transition;
+
+  &:hover {
+    color: v.$text-muted;
+    background: v.$surface-sunken;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  @include m.focus-ring;
 }
 
 .laneDot {
@@ -75,6 +109,43 @@ $label-indent: calc(8px + 0.45rem);
   }
 
   @include m.focus-ring;
+}
+
+.laneDeleteButton {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border-radius: v.$r-pill;
+  color: v.$text-subtle;
+  opacity: 0;
+  transition:
+    color v.$transition,
+    background-color v.$transition,
+    opacity v.$transition;
+
+  &:hover {
+    color: v.$danger;
+    background: v.$danger-soft;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  .laneLabel:hover & {
+    opacity: 1;
+  }
+
+  // Touch devices never hover — keep the affordance permanently visible.
+  @media (hover: none) {
+    opacity: 1;
+  }
 }
 
 .descriptionText {
@@ -153,9 +224,17 @@ $label-indent: calc(8px + 0.45rem);
 // --- Epic row --------------------------------------------------------------
 
 .epicRow {
+  border-radius: v.$r-md;
+  transition: background-color v.$transition, box-shadow v.$transition;
+
   & + & {
     margin-top: 0.5rem;
   }
+}
+
+.epicRowOver {
+  background: rgba(91, 91, 214, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(91, 91, 214, 0.3);
 }
 
 // Must fit EpicBar's `.slot` (top: 2px, height: 32px) plus a couple px of

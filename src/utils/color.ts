@@ -1,3 +1,18 @@
+/** Fallback lane color for objectives created before colors existed, or left unset. */
+export const DEFAULT_LANE_COLOR = '#8b93a7';
+
+/** Quick swatches so lanes/epics get distinguishable colors without opening the picker. */
+export const PRESET_COLORS = [
+  '#5b5bd6',
+  '#0ea5a3',
+  '#e0682a',
+  '#c2409a',
+  '#0f9463',
+  '#2f6fdb',
+  '#a3562f',
+  '#7c3aed',
+];
+
 function parseHex(hex: string): { r: number; g: number; b: number } {
   const normalized = hex.replace('#', '');
   const full =

@@ -31,6 +31,7 @@ export interface EpicInput {
   endDate: string;
   status?: Status;
   owner?: string;
+  color?: string;
 }
 
 export interface InitiativeInput {
@@ -65,11 +66,13 @@ interface RoadmapStoreState {
   updateEpic: (epicId: string, patch: Partial<EpicInput>) => void;
   removeEpic: (epicId: string) => void;
   moveEpic: (epicId: string, targetObjectiveId: string, targetIndex: number) => void;
+  reorderEpics: (objectiveId: string, orderedIds: string[]) => void;
 
   addInitiative: (epicId: string, input: InitiativeInput) => void;
   updateInitiative: (initiativeId: string, patch: Partial<InitiativeInput>) => void;
   removeInitiative: (initiativeId: string) => void;
   moveInitiative: (initiativeId: string, targetEpicId: string, targetIndex: number) => void;
+  reorderInitiatives: (epicId: string, orderedIds: string[]) => void;
 }
 
 function now(): string {
@@ -271,6 +274,21 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
     });
   },
 
+  reorderEpics: (objectiveId, orderedIds) => {
+    const active = get().activeRoadmap;
+    if (!active) return;
+    persist(set, {
+      ...active,
+      objectives: active.objectives.map((o) => {
+        if (o.id !== objectiveId) return o;
+        const byId = new Map(o.epics.map((e) => [e.id, e]));
+        const epics = orderedIds.map((id) => byId.get(id)).filter((e): e is Epic => !!e);
+        return { ...o, epics };
+      }),
+      updatedAt: now(),
+    });
+  },
+
   addInitiative: (epicId, input) => {
     const active = get().activeRoadmap;
     if (!active) return;
@@ -345,6 +363,26 @@ export const useRoadmapStore = create<RoadmapStoreState>((set, get) => ({
           if (e.id !== targetEpicId) return e;
           const initiatives = [...e.initiatives];
           initiatives.splice(targetIndex, 0, initiative);
+          return { ...e, initiatives };
+        }),
+      })),
+      updatedAt: now(),
+    });
+  },
+
+  reorderInitiatives: (epicId, orderedIds) => {
+    const active = get().activeRoadmap;
+    if (!active) return;
+    persist(set, {
+      ...active,
+      objectives: active.objectives.map((o) => ({
+        ...o,
+        epics: o.epics.map((e) => {
+          if (e.id !== epicId) return e;
+          const byId = new Map(e.initiatives.map((i) => [i.id, i]));
+          const initiatives = orderedIds
+            .map((id) => byId.get(id))
+            .filter((i): i is Initiative => !!i);
           return { ...e, initiatives };
         }),
       })),

@@ -8,6 +8,8 @@ import { formatShortDateLabel, isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
 import { AlertIcon } from '@/components/shared/Icon';
+import { OwnerCombobox } from '@/components/shared/OwnerCombobox';
+import { PRESET_COLORS } from '@/utils/color';
 import styles from '@/styles/shared.module.scss';
 
 interface EpicFormProps {
@@ -18,14 +20,26 @@ interface EpicFormProps {
     endDate: string;
     status?: Status;
     owner?: string;
+    color?: string;
   };
   /** Roadmap period, used to show a non-blocking out-of-range warning. */
   parentRange: DateRange;
+  /** The objective's own lane color — used as the default when no color is set. */
+  objectiveColor: string;
   onSubmit: (input: EpicInput) => void;
   onClose: () => void;
+  /** Only offered in edit mode — shows a delete button in the form. */
+  onDelete?: () => void;
 }
 
-export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormProps) {
+export function EpicForm({
+  initial,
+  parentRange,
+  objectiveColor,
+  onSubmit,
+  onClose,
+  onDelete,
+}: EpicFormProps) {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [range, setRange] = useState<DateRange>({
@@ -34,6 +48,8 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
   });
   const [status, setStatus] = useState<Status | ''>(initial?.status ?? 'planned');
   const [owner, setOwner] = useState(initial?.owner ?? '');
+  // undefined means "inherit the objective's color" — only set when the user picks their own.
+  const [color, setColor] = useState<string | undefined>(initial?.color);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const outOfRange = !isRangeWithin(range, parentRange);
@@ -47,6 +63,7 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
       endDate: range.endDate,
       status: status || undefined,
       owner: owner.trim() || undefined,
+      color,
     });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -127,25 +144,69 @@ export function EpicForm({ initial, parentRange, onSubmit, onClose }: EpicFormPr
         </div>
 
         <div className={styles.field}>
+          <span className={styles.label}>
+            Cor do épico <span className={styles.hint}>(opcional)</span>
+          </span>
+          <div className={styles.colorField}>
+            <input
+              type="color"
+              value={color ?? objectiveColor}
+              onChange={(e) => setColor(e.target.value)}
+              className={styles.colorInput}
+              aria-label="Cor personalizada"
+            />
+            <div className={styles.swatches}>
+              {PRESET_COLORS.map((preset) => {
+                const isActive = color?.toLowerCase() === preset;
+                return (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setColor(preset)}
+                    aria-label={`Usar cor ${preset}`}
+                    aria-pressed={isActive}
+                    className={`${styles.swatch} ${isActive ? styles.swatchActive : ''}`}
+                    style={{ backgroundColor: preset }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          {color ? (
+            <button type="button" onClick={() => setColor(undefined)} className={styles.linkButton}>
+              Usar a cor do objetivo
+            </button>
+          ) : (
+            <p className={styles.hint}>Seguindo a cor do objetivo.</p>
+          )}
+        </div>
+
+        <div className={styles.field}>
           <label className={styles.label} htmlFor="epic-owner">
             Responsável <span className={styles.hint}>(opcional)</span>
           </label>
-          <input
+          <OwnerCombobox
             id="epic-owner"
             value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            className={styles.input}
+            onChange={setOwner}
             placeholder="Nome de quem está à frente"
           />
         </div>
 
-        <div className={styles.formActions}>
-          <button type="button" onClick={onClose} className={styles.btnSecondary}>
-            Cancelar
-          </button>
-          <button type="submit" className={styles.btnPrimary}>
-            {initial ? 'Salvar alterações' : 'Criar épico'}
-          </button>
+        <div className={`${styles.formActions} ${onDelete ? styles.formActionsSpread : ''}`}>
+          {onDelete && (
+            <button type="button" onClick={onDelete} className={styles.btnDanger}>
+              Excluir épico
+            </button>
+          )}
+          <div className={styles.formActionsGroup}>
+            <button type="button" onClick={onClose} className={styles.btnSecondary}>
+              Cancelar
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              {initial ? 'Salvar alterações' : 'Criar épico'}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

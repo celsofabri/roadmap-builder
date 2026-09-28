@@ -81,6 +81,16 @@ $today-soft: #fce7f3;
   }
 }
 
+.todayToggleDate {
+  padding: 0.1rem 0.4rem;
+  border-radius: v.$r-pill;
+  background: $today-color;
+  color: #fff;
+  font-size: v.$f-2xs;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .segmented {
   display: inline-flex;
   gap: 2px;
@@ -136,12 +146,6 @@ $today-soft: #fce7f3;
   z-index: 15;
   background: v.$surface;
   border-bottom: 1px solid v.$border;
-}
-
-// Reserves a strip above the cell/gutter text for the today marker's date
-// tag, so it never overlaps the month/week label.
-.rulerRowWithToday {
-  padding-top: 20px;
 }
 
 .rulerGutter {
@@ -224,24 +228,6 @@ $today-soft: #fce7f3;
   width: 2px;
   background: $today-color;
   pointer-events: none;
-}
-
-.todayLabel {
-  position: absolute;
-  // Sits in the strip .rulerRowWithToday reserves above the ruler cell text,
-  // centered on the (2px-wide) line rather than hanging off one side of it.
-  top: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.1rem 0.45rem;
-  border-radius: v.$r-pill;
-  background: $today-color;
-  color: #fff;
-  font-size: v.$f-2xs;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  box-shadow: v.$shadow-xs;
 }
 
 .empty {

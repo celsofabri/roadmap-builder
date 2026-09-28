@@ -22,6 +22,12 @@
   }
 }
 
+.barOver {
+  box-shadow:
+    0 0 0 2px v.$accent,
+    v.$shadow-xs;
+}
+
 .body {
   @include m.reset-button;
   display: flex;

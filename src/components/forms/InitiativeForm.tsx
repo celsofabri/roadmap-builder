@@ -8,6 +8,7 @@ import { formatShortDateLabel, isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
 import { AlertIcon } from '@/components/shared/Icon';
+import { OwnerCombobox } from '@/components/shared/OwnerCombobox';
 import styles from '@/styles/shared.module.scss';
 
 interface InitiativeFormProps {
@@ -23,9 +24,17 @@ interface InitiativeFormProps {
   parentRange: DateRange;
   onSubmit: (input: InitiativeInput) => void;
   onClose: () => void;
+  /** Only offered in edit mode — shows a delete button in the form. */
+  onDelete?: () => void;
 }
 
-export function InitiativeForm({ initial, parentRange, onSubmit, onClose }: InitiativeFormProps) {
+export function InitiativeForm({
+  initial,
+  parentRange,
+  onSubmit,
+  onClose,
+  onDelete,
+}: InitiativeFormProps) {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [range, setRange] = useState<DateRange>({
@@ -130,22 +139,28 @@ export function InitiativeForm({ initial, parentRange, onSubmit, onClose }: Init
           <label className={styles.label} htmlFor="initiative-owner">
             Responsável <span className={styles.hint}>(opcional)</span>
           </label>
-          <input
+          <OwnerCombobox
             id="initiative-owner"
             value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            className={styles.input}
+            onChange={setOwner}
             placeholder="Nome de quem está à frente"
           />
         </div>
 
-        <div className={styles.formActions}>
-          <button type="button" onClick={onClose} className={styles.btnSecondary}>
-            Cancelar
-          </button>
-          <button type="submit" className={styles.btnPrimary}>
-            {initial ? 'Salvar alterações' : 'Criar iniciativa'}
-          </button>
+        <div className={`${styles.formActions} ${onDelete ? styles.formActionsSpread : ''}`}>
+          {onDelete && (
+            <button type="button" onClick={onDelete} className={styles.btnDanger}>
+              Excluir iniciativa
+            </button>
+          )}
+          <div className={styles.formActionsGroup}>
+            <button type="button" onClick={onClose} className={styles.btnSecondary}>
+              Cancelar
+            </button>
+            <button type="submit" className={styles.btnPrimary}>
+              {initial ? 'Salvar alterações' : 'Criar iniciativa'}
+            </button>
+          </div>
         </div>
       </form>
     </Modal>

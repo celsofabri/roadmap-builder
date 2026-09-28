@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
+  closestCenter,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type Modifier,
 } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useRoadmapStore } from '@/store/roadmapStore';
-import type { Epic, Granularity, Initiative, Roadmap, Status } from '@/types/roadmap.types';
+import type { Epic, Granularity, Initiative, Objective, Roadmap, Status } from '@/types/roadmap.types';
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
 import {
   addBusinessDaysISO,
@@ -43,19 +46,24 @@ interface TimelineViewProps {
   onEditEpic: (objectiveId: string, epic: Epic) => void;
   onAddEpic: (objectiveId: string) => void;
   onAddObjective: () => void;
+  onDeleteObjective: (objective: Objective) => void;
   onEditInitiative: (epic: Epic, initiative: Initiative) => void;
   onAddInitiative: (epic: Epic) => void;
 }
 
 type DragData =
+  | { type: 'objective'; objective: Objective }
   | { type: 'epic'; objectiveId: string; epic: Epic }
   | { type: 'initiative'; epicId: string; initiative: Initiative };
 
 const OBJECTIVE_LANE_PREFIX = 'objective-lane:';
+const OBJECTIVE_ROW_PREFIX = 'objective-row:';
 const EPIC_LANE_PREFIX = 'epic-lane:';
+const EPIC_ROW_PREFIX = 'epic-row:';
+const INITIATIVE_ROW_PREFIX = 'initiative-row:';
 
 /** Minimum pixels per day, per granularity — the grid grows beyond this to fill the viewport. */
-const MIN_DAY_WIDTH: Record<Granularity, number> = { monthly: 5, weekly: 14 };
+const MIN_DAY_WIDTH: Record<Granularity, number> = { monthly: 5, weekly: 14, daily: 56 };
 
 function findEpicById(roadmap: Roadmap, epicId: string): Epic | undefined {
   for (const objective of roadmap.objectives) {
@@ -65,20 +73,60 @@ function findEpicById(roadmap: Roadmap, epicId: string): Epic | undefined {
   return undefined;
 }
 
+function findObjectiveOfEpic(roadmap: Roadmap, epicId: string) {
+  return roadmap.objectives.find((o) => o.epics.some((e) => e.id === epicId));
+}
+
+function findEpicOfInitiative(roadmap: Roadmap, initiativeId: string): Epic | undefined {
+  for (const objective of roadmap.objectives) {
+    const epic = objective.epics.find((e) => e.initiatives.some((i) => i.id === initiativeId));
+    if (epic) return epic;
+  }
+  return undefined;
+}
+
+/**
+ * Only lets an epic collide with epic-row/objective-lane targets, and an
+ * initiative with initiative-row/epic-lane targets — otherwise a dragged
+ * epic bar could register as "over" an unrelated initiative's row and vice
+ * versa, since both are absolutely-positioned and can visually overlap.
+ */
+const collisionDetection: CollisionDetection = (args) => {
+  const activeType = (args.active.data.current as DragData | undefined)?.type;
+  const droppableContainers = args.droppableContainers.filter((container) => {
+    const id = String(container.id);
+    if (activeType === 'objective') {
+      return id.startsWith(OBJECTIVE_ROW_PREFIX);
+    }
+    if (activeType === 'epic') {
+      return id.startsWith(OBJECTIVE_LANE_PREFIX) || id.startsWith(EPIC_ROW_PREFIX);
+    }
+    if (activeType === 'initiative') {
+      return id.startsWith(EPIC_LANE_PREFIX) || id.startsWith(INITIATIVE_ROW_PREFIX);
+    }
+    return true;
+  });
+  return closestCenter({ ...args, droppableContainers });
+};
+
 export function TimelineView({
   roadmap,
   showOwners,
   onEditEpic,
   onAddEpic,
   onAddObjective,
+  onDeleteObjective,
   onEditInitiative,
   onAddInitiative,
 }: TimelineViewProps) {
   const [granularity, setGranularity] = useState<Granularity>('monthly');
   const [showTodayLine, setShowTodayLine] = useState(readShowTodayLine);
+  const reorderObjectives = useRoadmapStore((s) => s.reorderObjectives);
   const moveEpic = useRoadmapStore((s) => s.moveEpic);
+  const reorderEpics = useRoadmapStore((s) => s.reorderEpics);
   const updateEpic = useRoadmapStore((s) => s.updateEpic);
   const moveInitiative = useRoadmapStore((s) => s.moveInitiative);
+  const reorderInitiatives = useRoadmapStore((s) => s.reorderInitiatives);
   const updateInitiative = useRoadmapStore((s) => s.updateInitiative);
 
   const [scrollRef, containerWidth] = useElementWidth<HTMLDivElement>();
@@ -119,11 +167,13 @@ export function TimelineView({
   const modifiers: Modifier[] = useMemo(() => {
     const step = dayWidth * snapDays;
     return [
-      ({ transform }) => ({
-        ...transform,
-        x: Math.round(transform.x / step) * step,
-        y: 0,
-      }),
+      ({ transform, active }) => {
+        // Objectives only reorder vertically — dates don't apply to them.
+        if ((active?.data.current as DragData | undefined)?.type === 'objective') {
+          return { ...transform, x: 0 };
+        }
+        return { ...transform, x: Math.round(transform.x / step) * step };
+      },
     ];
   }, [dayWidth, snapDays]);
 
@@ -165,18 +215,50 @@ export function TimelineView({
     const dayDelta = Math.round(delta.x / step) * snapDays;
     const overId = over ? String(over.id) : null;
 
-    if (data.type === 'epic') {
-      const { epic, objectiveId } = data;
-      const targetObjectiveId = overId?.startsWith(OBJECTIVE_LANE_PREFIX)
-        ? overId.slice(OBJECTIVE_LANE_PREFIX.length)
-        : objectiveId;
-
-      if (targetObjectiveId !== objectiveId) {
-        const targetObjective = roadmap.objectives.find((o) => o.id === targetObjectiveId);
-        if (targetObjective) {
-          moveEpic(epic.id, targetObjectiveId, targetObjective.epics.length);
+    if (data.type === 'objective') {
+      if (overId?.startsWith(OBJECTIVE_ROW_PREFIX)) {
+        const targetObjectiveId = overId.slice(OBJECTIVE_ROW_PREFIX.length);
+        if (targetObjectiveId !== data.objective.id) {
+          const ids = roadmap.objectives.map((o) => o.id);
+          const oldIndex = ids.indexOf(data.objective.id);
+          const newIndex = ids.indexOf(targetObjectiveId);
+          if (oldIndex !== -1 && newIndex !== -1) {
+            reorderObjectives(arrayMove(ids, oldIndex, newIndex));
+          }
         }
       }
+      return;
+    }
+
+    if (data.type === 'epic') {
+      const { epic, objectiveId } = data;
+
+      if (overId?.startsWith(EPIC_ROW_PREFIX)) {
+        const targetEpicId = overId.slice(EPIC_ROW_PREFIX.length);
+        const targetObjective = findObjectiveOfEpic(roadmap, targetEpicId);
+        if (targetEpicId !== epic.id && targetObjective) {
+          if (targetObjective.id === objectiveId) {
+            const ids = targetObjective.epics.map((e) => e.id);
+            const oldIndex = ids.indexOf(epic.id);
+            const newIndex = ids.indexOf(targetEpicId);
+            if (oldIndex !== -1 && newIndex !== -1) {
+              reorderEpics(objectiveId, arrayMove(ids, oldIndex, newIndex));
+            }
+          } else {
+            const targetIndex = targetObjective.epics.findIndex((e) => e.id === targetEpicId);
+            moveEpic(epic.id, targetObjective.id, targetIndex);
+          }
+        }
+      } else if (overId?.startsWith(OBJECTIVE_LANE_PREFIX)) {
+        const targetObjectiveId = overId.slice(OBJECTIVE_LANE_PREFIX.length);
+        if (targetObjectiveId !== objectiveId) {
+          const targetObjective = roadmap.objectives.find((o) => o.id === targetObjectiveId);
+          if (targetObjective) {
+            moveEpic(epic.id, targetObjectiveId, targetObjective.epics.length);
+          }
+        }
+      }
+
       if (dayDelta !== 0) {
         updateEpic(epic.id, {
           startDate: addBusinessDaysISO(epic.startDate, dayDelta),
@@ -185,16 +267,35 @@ export function TimelineView({
       }
     } else {
       const { initiative, epicId } = data;
-      const targetEpicId = overId?.startsWith(EPIC_LANE_PREFIX)
-        ? overId.slice(EPIC_LANE_PREFIX.length)
-        : epicId;
 
-      if (targetEpicId !== epicId) {
-        const targetEpic = findEpicById(roadmap, targetEpicId);
-        if (targetEpic) {
-          moveInitiative(initiative.id, targetEpicId, targetEpic.initiatives.length);
+      if (overId?.startsWith(INITIATIVE_ROW_PREFIX)) {
+        const targetInitiativeId = overId.slice(INITIATIVE_ROW_PREFIX.length);
+        const targetEpic = findEpicOfInitiative(roadmap, targetInitiativeId);
+        if (targetInitiativeId !== initiative.id && targetEpic) {
+          if (targetEpic.id === epicId) {
+            const ids = targetEpic.initiatives.map((i) => i.id);
+            const oldIndex = ids.indexOf(initiative.id);
+            const newIndex = ids.indexOf(targetInitiativeId);
+            if (oldIndex !== -1 && newIndex !== -1) {
+              reorderInitiatives(epicId, arrayMove(ids, oldIndex, newIndex));
+            }
+          } else {
+            const targetIndex = targetEpic.initiatives.findIndex(
+              (i) => i.id === targetInitiativeId,
+            );
+            moveInitiative(initiative.id, targetEpic.id, targetIndex);
+          }
+        }
+      } else if (overId?.startsWith(EPIC_LANE_PREFIX)) {
+        const targetEpicId = overId.slice(EPIC_LANE_PREFIX.length);
+        if (targetEpicId !== epicId) {
+          const targetEpic = findEpicById(roadmap, targetEpicId);
+          if (targetEpic) {
+            moveInitiative(initiative.id, targetEpicId, targetEpic.initiatives.length);
+          }
         }
       }
+
       if (dayDelta !== 0) {
         updateInitiative(initiative.id, {
           startDate: addBusinessDaysISO(initiative.startDate, dayDelta),
@@ -233,6 +334,9 @@ export function TimelineView({
           >
             <CalendarIcon size={14} />
             Indicador de hoje
+            {todayInPeriod && showTodayLine && (
+              <span className={styles.todayToggleDate}>{formatShortYearLabel(today)}</span>
+            )}
           </button>
 
           <div className={styles.segmented} role="group" aria-label="Granularidade da timeline">
@@ -251,6 +355,14 @@ export function TimelineView({
               className={`${styles.segment} ${granularity === 'weekly' ? styles.segmentActive : ''}`}
             >
               Semanal
+            </button>
+            <button
+              type="button"
+              onClick={() => setGranularity('daily')}
+              aria-pressed={granularity === 'daily'}
+              className={`${styles.segment} ${granularity === 'daily' ? styles.segmentActive : ''}`}
+            >
+              Diário
             </button>
           </div>
         </div>
@@ -271,11 +383,7 @@ export function TimelineView({
         <>
           <div className={styles.scrollArea} ref={scrollRef}>
             <div className={styles.grid} style={{ width: labelWidth + timelineWidth }}>
-              <div
-                className={`${styles.rulerRow} ${
-                  showTodayLine && todayInPeriod ? styles.rulerRowWithToday : ''
-                }`}
-              >
+              <div className={styles.rulerRow}>
                 <div className={styles.rulerGutter} style={{ width: labelWidth }}>
                   Objetivo
                 </div>
@@ -300,7 +408,12 @@ export function TimelineView({
                   ))}
                 </div>
 
-                <DndContext sensors={sensors} modifiers={modifiers} onDragEnd={handleDragEnd}>
+                <DndContext
+                  sensors={sensors}
+                  modifiers={modifiers}
+                  collisionDetection={collisionDetection}
+                  onDragEnd={handleDragEnd}
+                >
                   {roadmap.objectives.map((objective) => (
                     <TimelineLane
                       key={objective.id}
@@ -315,22 +428,23 @@ export function TimelineView({
                       onInitiativeClick={onEditInitiative}
                       onAddEpic={onAddEpic}
                       onAddInitiative={onAddInitiative}
+                      onDeleteObjective={onDeleteObjective}
                     />
                   ))}
                 </DndContext>
               </div>
 
               {showTodayLine && todayInPeriod && (
-                <div className={styles.todayLine} style={{ left: todayLeft }}>
-                  <span className={styles.todayLabel}>{formatShortYearLabel(today)}</span>
-                </div>
+                <div className={styles.todayLine} style={{ left: todayLeft }} />
               )}
             </div>
           </div>
 
           <p className={styles.hint}>
-            Arraste uma barra para mover as datas, puxe pelas bordas para redimensionar, ou solte em
-            outra raia para reatribuir.
+            Arraste uma barra na horizontal para mover as datas, puxe pelas bordas para
+            redimensionar, ou arraste na vertical sobre outro épico/iniciativa para reordenar ou
+            outra raia para reatribuir. Use a alça ao lado do nome do objetivo para reordenar as
+            raias.
           </p>
         </>
       )}

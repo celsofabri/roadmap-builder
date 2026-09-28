@@ -203,6 +203,31 @@ export const InfoIcon = ({ size = 16, className }: IconProps) =>
     </>,
   );
 
+export const UsersIcon = ({ size = 16, className }: IconProps) =>
+  base(
+    size,
+    className,
+    <>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+    </>,
+  );
+
+export const GripIcon = ({ size = 16, className }: IconProps) =>
+  base(
+    size,
+    className,
+    <>
+      <circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none" />
+    </>,
+  );
+
 export const MapIcon = ({ size = 20, className }: IconProps) =>
   base(
     size,

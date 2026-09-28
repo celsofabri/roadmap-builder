@@ -203,9 +203,13 @@
 .objectiveHeader {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.625rem;
   padding: 0.875rem 1rem 0.875rem 1.125rem;
+}
+
+.objectiveMain {
+  flex: 1;
+  min-width: 0;
 }
 
 .objectiveTitleRow {
@@ -263,6 +267,35 @@
   flex-shrink: 0;
 }
 
+.dragHandle {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.1rem;
+  border-radius: v.$r-sm;
+  color: v.$text-subtle;
+  cursor: grab;
+  touch-action: none;
+  transition:
+    color v.$transition,
+    background-color v.$transition;
+
+  &:hover {
+    color: v.$text-muted;
+    background: v.$surface-sunken;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  @include m.focus-ring;
+}
+
 // --- Epics -----------------------------------------------------------------
 
 .epics {
@@ -288,8 +321,12 @@
 .epicHeader {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.625rem;
+}
+
+.epicMain {
+  flex: 1;
+  min-width: 0;
 }
 
 .epicTitleRow {
@@ -326,8 +363,7 @@
 .initiative {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
   padding: 0.3rem 0.5rem 0.3rem 0.25rem;
   border-radius: v.$r-sm;
   transition: background-color v.$transition;
@@ -341,6 +377,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
   flex-wrap: wrap;
   min-width: 0;
 }

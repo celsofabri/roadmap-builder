@@ -11,6 +11,7 @@ import {
 } from '@/utils/dateUtils';
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
 import styles from './EpicBar.module.scss';
 
 interface EpicBarProps {
@@ -21,6 +22,8 @@ interface EpicBarProps {
   dayWidth: number;
   snapDays: number;
   periodStart: string;
+  /** Highlighted while another epic is dragged over this one's row, as a reorder target. */
+  isRowOver?: boolean;
   onClick: (epic: Epic) => void;
 }
 
@@ -32,9 +35,11 @@ export function EpicBar({
   dayWidth,
   snapDays,
   periodStart,
+  isRowOver,
   onClick,
 }: EpicBarProps) {
   const updateEpic = useRoadmapStore((s) => s.updateEpic);
+  const members = useTeamMemberStore((s) => s.members);
   const [preview, setPreview] = useState<{ startDate: string; endDate: string } | null>(null);
   const previewRef = useRef<{ startDate: string; endDate: string } | null>(null);
 
@@ -95,10 +100,10 @@ export function EpicBar({
     <div className={styles.slot} style={{ left, width }}>
       <div
         ref={setNodeRef}
-        className={styles.bar}
+        className={`${styles.bar} ${isRowOver ? styles.barOver : ''}`}
         style={{
           backgroundColor: color,
-          transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
+          transform: transform ? CSS.Translate.toString(transform) : undefined,
           boxShadow: isDragging ? '0 6px 16px rgba(20, 25, 43, 0.35)' : undefined,
           zIndex: isDragging ? 20 : 1,
           opacity: isDragging ? 0.9 : 1,
@@ -113,7 +118,12 @@ export function EpicBar({
           title={tooltip}
         >
           {showOwner && epic.owner && (
-            <OwnerAvatar name={epic.owner} size={18} className={styles.ownerAvatar} />
+            <OwnerAvatar
+              name={epic.owner}
+              photoDataUrl={findMemberPhoto(members, epic.owner)}
+              size={18}
+              className={styles.ownerAvatar}
+            />
           )}
           <span className={styles.label}>{epic.title}</span>
           {epic.status && (

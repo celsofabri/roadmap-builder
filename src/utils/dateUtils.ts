@@ -4,6 +4,7 @@ import {
   addMonths,
   differenceInBusinessDays,
   differenceInCalendarDays,
+  eachDayOfInterval,
   eachMonthOfInterval,
   eachWeekOfInterval,
   endOfMonth,
@@ -82,6 +83,14 @@ export function getWeeksInPeriod(period: DateRange): Date[] {
   );
 }
 
+/** List of business-day Dates (Mon–Fri) spanning the period, inclusive. */
+export function getBusinessDaysInPeriod(period: DateRange): Date[] {
+  return eachDayOfInterval({
+    start: fromISODate(period.startDate),
+    end: fromISODate(period.endDate),
+  }).filter((date) => !isWeekend(date));
+}
+
 export function addMonthsISO(iso: string, amount: number): string {
   return toISODate(addMonths(fromISODate(iso), amount));
 }
@@ -158,7 +167,7 @@ export interface RulerCell {
   endDate: string;
 }
 
-/** Ruler cells (months or weeks) spanning the period, clamped to it. */
+/** Ruler cells (months, weeks or days) spanning the period, clamped to it. */
 export function buildRulerCells(period: DateRange, granularity: Granularity): RulerCell[] {
   if (granularity === 'monthly') {
     return getMonthsInPeriod(period).map((monthStart) => ({
@@ -166,6 +175,17 @@ export function buildRulerCells(period: DateRange, granularity: Granularity): Ru
       startDate: toISODate(monthStart),
       endDate: monthEndISO(monthStart),
     }));
+  }
+
+  if (granularity === 'daily') {
+    return getBusinessDaysInPeriod(period).map((day) => {
+      const iso = toISODate(day);
+      return {
+        label: format(day, 'dd/MM', { locale: ptBR }),
+        startDate: iso,
+        endDate: iso,
+      };
+    });
   }
 
   return getWeeksInPeriod(period).map((weekStart) => {

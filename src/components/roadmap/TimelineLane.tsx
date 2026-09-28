@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import type { Epic, Initiative, Objective } from '@/types/roadmap.types';
 import { EpicBar } from '@/components/roadmap/EpicBar';
 import { InitiativeBar } from '@/components/roadmap/InitiativeBar';
 import { Modal } from '@/components/shared/Modal';
-import { InfoIcon, PlusIcon } from '@/components/shared/Icon';
+import { GripIcon, InfoIcon, PlusIcon, TrashIcon } from '@/components/shared/Icon';
 import { businessDaysBetweenISO, rangeSpanBusinessDays } from '@/utils/dateUtils';
 import { packIntoRows } from '@/utils/packIntoRows';
 import { ownerColor } from '@/utils/ownerAvatar';
-import { lightenColor } from '@/utils/color';
+import { DEFAULT_LANE_COLOR, lightenColor } from '@/utils/color';
 import styles from './TimelineLane.module.scss';
 
 /** How much lighter initiative bars are than their epic's own color — keeps the two visually distinct. */
@@ -37,6 +38,63 @@ interface TimelineLaneProps {
   onInitiativeClick: (epic: Epic, initiative: Initiative) => void;
   onAddEpic: (objectiveId: string) => void;
   onAddInitiative: (epic: Epic) => void;
+  onDeleteObjective: (objective: Objective) => void;
+}
+
+interface InitiativeSlotProps {
+  initiative: Initiative;
+  epicId: string;
+  color: string;
+  showOwners: boolean;
+  dayWidth: number;
+  snapDays: number;
+  periodStart: string;
+  timelineWidth: number;
+  top: number;
+  onClick: (initiative: Initiative) => void;
+}
+
+/**
+ * Wraps each InitiativeBar in a full-width drop target for its own row, so
+ * dragging another initiative vertically onto it — regardless of that
+ * initiative's own date range — reorders the two within the epic.
+ */
+function InitiativeSlot({
+  initiative,
+  epicId,
+  color,
+  showOwners,
+  dayWidth,
+  snapDays,
+  periodStart,
+  timelineWidth,
+  top,
+  onClick,
+}: InitiativeSlotProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `initiative-row:${initiative.id}`,
+    data: { type: 'initiative' as const, epicId },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ position: 'absolute', left: 0, top, width: timelineWidth, height: INITIATIVE_ROW_H }}
+    >
+      <InitiativeBar
+        initiative={initiative}
+        epicId={epicId}
+        color={color}
+        showOwner={showOwners}
+        dayWidth={dayWidth}
+        snapDays={snapDays}
+        periodStart={periodStart}
+        top={0}
+        isRowOver={isOver}
+        onClick={onClick}
+      />
+    </div>
+  );
 }
 
 interface EpicRowProps {
@@ -66,7 +124,14 @@ function EpicRow({
   onInitiativeClick,
   onAddInitiative,
 }: EpicRowProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: `epic-lane:${epic.id}` });
+  const { setNodeRef: setLaneRef, isOver: isLaneOver } = useDroppable({ id: `epic-lane:${epic.id}` });
+  // Full-row drop target — dragging another epic anywhere over this epic's
+  // block (bar + its initiatives), regardless of that epic's own date range,
+  // reorders the two within the objective.
+  const { setNodeRef: setRowRef, isOver: isRowOver } = useDroppable({
+    id: `epic-row:${epic.id}`,
+    data: { type: 'epic' as const, objectiveId },
+  });
   const initiativeColor = useMemo(() => lightenColor(color, INITIATIVE_LIGHTEN), [color]);
 
   // Overlapping initiatives are stacked instead of drawn on top of each other.
@@ -88,7 +153,7 @@ function EpicRow({
   const addLeft = clamp(preferredLeft, 2, Math.max(timelineWidth - ADD_BTN_W - 2, 2));
 
   return (
-    <div className={styles.epicRow}>
+    <div ref={setRowRef} className={`${styles.epicRow} ${isRowOver ? styles.epicRowOver : ''}`}>
       <div className={styles.epicBarSlot} style={{ width: timelineWidth }}>
         <EpicBar
           epic={epic}
@@ -98,6 +163,7 @@ function EpicRow({
           dayWidth={dayWidth}
           snapDays={snapDays}
           periodStart={periodStart}
+          isRowOver={isRowOver}
           onClick={onEpicClick}
         />
         <button
@@ -113,20 +179,21 @@ function EpicRow({
       </div>
 
       <div
-        ref={setNodeRef}
-        className={`${styles.initiativeLane} ${isOver ? styles.initiativeLaneOver : ''}`}
+        ref={setLaneRef}
+        className={`${styles.initiativeLane} ${isLaneOver ? styles.initiativeLaneOver : ''}`}
         style={{ width: timelineWidth, height: laneHeight || undefined }}
       >
         {placements.map(({ item, row }) => (
-          <InitiativeBar
+          <InitiativeSlot
             key={item.id}
             initiative={item}
             epicId={epic.id}
             color={initiativeColor}
-            showOwner={showOwners}
+            showOwners={showOwners}
             dayWidth={dayWidth}
             snapDays={snapDays}
             periodStart={periodStart}
+            timelineWidth={timelineWidth}
             top={row * (INITIATIVE_ROW_H + INITIATIVE_ROW_GAP)}
             onClick={(i) => onInitiativeClick(epic, i)}
           />
@@ -148,16 +215,49 @@ export function TimelineLane({
   onInitiativeClick,
   onAddEpic,
   onAddInitiative,
+  onDeleteObjective,
 }: TimelineLaneProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: `objective-lane:${objective.id}` });
-  const color = objective.color ?? '#8b93a7';
+  const { setNodeRef: setLaneRef, isOver } = useDroppable({ id: `objective-lane:${objective.id}` });
+  // Drag handle reorders the objective's own row among its siblings; the
+  // whole lane is the draggable's node so it visually moves as a block.
+  const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({
+    id: `objective:${objective.id}`,
+    data: { type: 'objective' as const, objective },
+  });
+  const { setNodeRef: setRowRef, isOver: isRowOver } = useDroppable({
+    id: `objective-row:${objective.id}`,
+    data: { type: 'objective' as const },
+  });
+  const setNodeRef = (node: HTMLDivElement | null) => {
+    setLaneRef(node);
+    setDragRef(node);
+    setRowRef(node);
+  };
+  const color = objective.color ?? DEFAULT_LANE_COLOR;
   const initiativeCount = objective.epics.reduce((sum, e) => sum + e.initiatives.length, 0);
   const [showDescription, setShowDescription] = useState(false);
 
   return (
-    <div className={styles.lane}>
+    <div
+      ref={setNodeRef}
+      className={`${styles.lane} ${isRowOver ? styles.laneRowOver : ''}`}
+      style={{
+        transform: transform ? CSS.Translate.toString(transform) : undefined,
+        zIndex: isDragging ? 30 : undefined,
+        opacity: isDragging ? 0.85 : 1,
+      }}
+    >
       <div className={styles.laneLabel} style={{ width: labelWidth }}>
         <div className={styles.laneLabelRow}>
+          <button
+            type="button"
+            className={styles.laneDragHandle}
+            {...attributes}
+            {...listeners}
+            aria-label={`Reordenar objetivo ${objective.title}`}
+          >
+            <GripIcon size={14} />
+          </button>
           <span className={styles.laneDot} style={{ backgroundColor: color }} />
           <span className={styles.laneTitle} title={objective.title}>
             {objective.title}
@@ -173,6 +273,15 @@ export function TimelineLane({
               <InfoIcon size={13} />
             </button>
           )}
+          <button
+            type="button"
+            className={styles.laneDeleteButton}
+            onClick={() => onDeleteObjective(objective)}
+            title="Excluir objetivo"
+            aria-label={`Excluir objetivo ${objective.title}`}
+          >
+            <TrashIcon size={13} />
+          </button>
         </div>
 
         {showDescription && objective.description && (
@@ -206,7 +315,7 @@ export function TimelineLane({
         </button>
       </div>
 
-      <div ref={setNodeRef} className={`${styles.laneBody} ${isOver ? styles.laneBodyOver : ''}`}>
+      <div ref={setLaneRef} className={`${styles.laneBody} ${isOver ? styles.laneBodyOver : ''}`}>
         {objective.epics.length === 0 ? (
           <p className={styles.laneEmpty}>Nenhum épico neste objetivo.</p>
         ) : (
@@ -215,7 +324,7 @@ export function TimelineLane({
               key={epic.id}
               epic={epic}
               objectiveId={objective.id}
-              color={color}
+              color={epic.color ?? color}
               showOwners={showOwners}
               dayWidth={dayWidth}
               snapDays={snapDays}

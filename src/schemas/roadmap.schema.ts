@@ -38,6 +38,8 @@ const epicBaseSchema = z.object({
   endDate: isoDateSchema,
   status: statusSchema.optional(),
   owner: z.string().min(1).optional(),
+  /** Overrides the objective's lane color for this epic; unset means "inherit". */
+  color: z.string().optional(),
 });
 
 const objectiveBaseSchema = z.object({

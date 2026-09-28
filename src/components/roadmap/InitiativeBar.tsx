@@ -12,6 +12,7 @@ import {
 import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
 import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
 import { contrastTextColor } from '@/utils/color';
+import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
 import styles from './InitiativeBar.module.scss';
 
 interface InitiativeBarProps {
@@ -24,6 +25,8 @@ interface InitiativeBarProps {
   periodStart: string;
   /** Vertical offset in px, assigned by the lane's overlap packing. */
   top: number;
+  /** Highlighted while another initiative is dragged over this one's row, as a reorder target. */
+  isRowOver?: boolean;
   onClick: (initiative: Initiative) => void;
 }
 
@@ -36,9 +39,11 @@ export function InitiativeBar({
   snapDays,
   periodStart,
   top,
+  isRowOver,
   onClick,
 }: InitiativeBarProps) {
   const updateInitiative = useRoadmapStore((s) => s.updateInitiative);
+  const members = useTeamMemberStore((s) => s.members);
   const [preview, setPreview] = useState<{ startDate: string; endDate: string } | null>(null);
   const previewRef = useRef<{ startDate: string; endDate: string } | null>(null);
 
@@ -102,11 +107,11 @@ export function InitiativeBar({
     <div className={styles.slot} style={{ left, width, top }}>
       <div
         ref={setNodeRef}
-        className={styles.bar}
+        className={`${styles.bar} ${isRowOver ? styles.barOver : ''}`}
         style={{
           backgroundColor: color,
           color: textColor,
-          transform: transform ? CSS.Translate.toString({ ...transform, y: 0 }) : undefined,
+          transform: transform ? CSS.Translate.toString(transform) : undefined,
           boxShadow: isDragging ? '0 4px 10px rgba(20, 25, 43, 0.3)' : undefined,
           zIndex: isDragging ? 20 : 1,
           opacity: isDragging ? 0.95 : 1,
@@ -121,7 +126,12 @@ export function InitiativeBar({
           title={tooltip}
         >
           {showOwner && initiative.owner && (
-            <OwnerAvatar name={initiative.owner} size={16} className={styles.ownerAvatar} />
+            <OwnerAvatar
+              name={initiative.owner}
+              photoDataUrl={findMemberPhoto(members, initiative.owner)}
+              size={16}
+              className={styles.ownerAvatar}
+            />
           )}
           <span className={styles.label}>{initiative.title}</span>
           {initiative.status && (

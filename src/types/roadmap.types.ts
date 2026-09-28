@@ -1,6 +1,6 @@
 export type Status = 'planned' | 'in_progress' | 'overdue' | 'done' | 'blocked';
 
-export type Granularity = 'monthly' | 'weekly';
+export type Granularity = 'monthly' | 'weekly' | 'daily';
 
 export interface Period {
   /** ISO "YYYY-MM-DD", always the 1st of the month */
@@ -29,6 +29,8 @@ export interface Epic {
   status?: Status;
   /** Name of the person leading this epic. */
   owner?: string;
+  /** Overrides the objective's lane color for this epic's bar; unset inherits it. */
+  color?: string;
   initiatives: Initiative[];
 }
 
