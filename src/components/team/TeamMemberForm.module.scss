@@ -1,0 +1,26 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.photoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.photoPreview {
+  @include m.reset-button;
+  border-radius: 50%;
+  transition: filter v.$transition;
+
+  &:hover {
+    filter: brightness(0.94);
+  }
+
+  @include m.focus-ring;
+}
+
+.photoActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

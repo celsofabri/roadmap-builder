@@ -249,7 +249,16 @@
   }
 }
 
-// --- Create action -----------------------------------------------------
+// --- Footer actions ------------------------------------------------------
+
+.footerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid v.$border;
+}
 
 .createButton {
   @include m.reset-button;
@@ -257,10 +266,8 @@
   align-items: center;
   gap: 0.45rem;
   width: 100%;
-  margin-top: 4px;
   padding: 0.4rem 0.5rem;
   border-radius: v.$r-sm;
-  border-top: 1px solid v.$border;
   font-size: v.$f-sm;
   font-weight: 500;
   color: v.$accent-text;

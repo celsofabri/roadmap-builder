@@ -1,25 +1,17 @@
 import { useState } from 'react';
 import { Modal } from '@/components/shared/Modal';
 import { CloseIcon } from '@/components/shared/Icon';
+import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { OwnerCombobox } from '@/components/shared/OwnerCombobox';
 import { objectiveInputSchema } from '@/schemas/roadmap.schema';
 import type { ObjectiveInput } from '@/store/roadmapStore';
 import { ownerColor } from '@/utils/ownerAvatar';
+import { PRESET_COLORS } from '@/utils/color';
+import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
 import styles from '@/styles/shared.module.scss';
 import formStyles from './ObjectiveForm.module.scss';
 
-const DEFAULT_COLOR = '#5b5bd6';
-
-/** Quick swatches so lanes get distinguishable colors without opening the picker. */
-const PRESET_COLORS = [
-  '#5b5bd6',
-  '#0ea5a3',
-  '#e0682a',
-  '#c2409a',
-  '#0f9463',
-  '#2f6fdb',
-  '#a3562f',
-  '#7c3aed',
-];
+const DEFAULT_COLOR = PRESET_COLORS[0];
 
 interface ObjectiveFormProps {
   initial?: { title: string; description?: string; color?: string; owners?: string[] };
@@ -28,6 +20,7 @@ interface ObjectiveFormProps {
 }
 
 export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps) {
+  const members = useTeamMemberStore((s) => s.members);
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [color, setColor] = useState(initial?.color ?? DEFAULT_COLOR);
@@ -35,8 +28,8 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
   const [ownerDraft, setOwnerDraft] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function addOwner() {
-    const name = ownerDraft.trim();
+  function addOwner(nameArg?: string) {
+    const name = (nameArg ?? ownerDraft).trim();
     if (!name) return;
     if (!owners.some((o) => o.toLowerCase() === name.toLowerCase())) {
       setOwners((prev) => [...prev, name]);
@@ -48,8 +41,8 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
     setOwners((prev) => prev.filter((o) => o !== name));
   }
 
-  function handleOwnerKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
+  function handleOwnerExtraKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === ',') {
       e.preventDefault();
       addOwner();
     } else if (e.key === 'Backspace' && !ownerDraft && owners.length > 0) {
@@ -117,7 +110,7 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
               className={styles.colorInput}
               aria-label="Cor personalizada"
             />
-            <div className={formStyles.swatches}>
+            <div className={styles.swatches}>
               {PRESET_COLORS.map((preset) => {
                 const isActive = color.toLowerCase() === preset;
                 return (
@@ -127,7 +120,7 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
                     onClick={() => setColor(preset)}
                     aria-label={`Usar cor ${preset}`}
                     aria-pressed={isActive}
-                    className={`${formStyles.swatch} ${isActive ? formStyles.swatchActive : ''}`}
+                    className={`${styles.swatch} ${isActive ? styles.swatchActive : ''}`}
                     style={{ backgroundColor: preset }}
                   />
                 );
@@ -150,6 +143,12 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
                     className={formStyles.ownerChip}
                     style={{ backgroundColor: bg, color: text }}
                   >
+                    <OwnerAvatar
+                      name={owner}
+                      photoDataUrl={findMemberPhoto(members, owner)}
+                      size={16}
+                      className={formStyles.chipAvatar}
+                    />
                     {owner}
                     <button
                       type="button"
@@ -165,13 +164,15 @@ export function ObjectiveForm({ initial, onSubmit, onClose }: ObjectiveFormProps
               })}
             </div>
           )}
-          <input
+          <OwnerCombobox
             id="objective-owners"
             value={ownerDraft}
-            onChange={(e) => setOwnerDraft(e.target.value)}
-            onKeyDown={handleOwnerKeyDown}
-            onBlur={addOwner}
-            className={styles.input}
+            onChange={setOwnerDraft}
+            onSelect={(name) => addOwner(name)}
+            onExtraKeyDown={handleOwnerExtraKeyDown}
+            onBlurCommit={() => addOwner()}
+            excludeNames={owners}
+            collapseWhenFilled={false}
             placeholder="Nome da pessoa e Enter"
           />
           <p className={styles.hint}>

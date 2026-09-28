@@ -84,3 +84,14 @@ export interface WorkspaceSummary {
   roadmapCount: number;
   updatedAt: string;
 }
+
+/** A person registered in a workspace's team, so they can be picked instead of typed everywhere. */
+export interface TeamMember {
+  id: string;
+  workspaceId: string;
+  name: string;
+  /** Small square photo (data URL) shown instead of the initials fallback. */
+  photoDataUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}

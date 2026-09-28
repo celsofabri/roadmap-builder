@@ -1,10 +1,17 @@
-import type { Roadmap, RoadmapSummary, Workspace, WorkspaceSummary } from '@/types/roadmap.types';
+import type {
+  Roadmap,
+  RoadmapSummary,
+  TeamMember,
+  Workspace,
+  WorkspaceSummary,
+} from '@/types/roadmap.types';
 import { regenerateRoadmapIds } from '@/utils/cloneRoadmap';
 import { buildSeedWorkspaces } from '@/utils/seedData';
 
 const STORAGE_KEY = 'roadmap-builder:roadmaps';
 const WORKSPACES_KEY = 'roadmap-builder:workspaces';
 const ACTIVE_WORKSPACE_KEY = 'roadmap-builder:active-workspace';
+const TEAM_MEMBERS_KEY = 'roadmap-builder:team-members';
 const SEEDED_KEY = 'roadmap-builder:seeded';
 
 function readAll(): Roadmap[] {
@@ -37,6 +44,24 @@ function readWorkspaces(): Workspace[] {
 
 function writeWorkspaces(workspaces: Workspace[]): void {
   localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaces));
+}
+
+function readTeamMembers(): TeamMember[] {
+  const raw = localStorage.getItem(TEAM_MEMBERS_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as TeamMember[]) : [];
+  } catch {
+    console.error(
+      'roadmap-builder: falha ao ler responsáveis do localStorage, dado corrompido ignorado',
+    );
+    return [];
+  }
+}
+
+function writeTeamMembers(members: TeamMember[]): void {
+  localStorage.setItem(TEAM_MEMBERS_KEY, JSON.stringify(members));
 }
 
 function toSummary(roadmap: Roadmap): RoadmapSummary {
@@ -147,10 +172,36 @@ export const storageService = {
     writeWorkspaces(all);
   },
 
-  /** Deletes a workspace and every roadmap that belongs to it. */
+  /** Deletes a workspace and every roadmap/team member that belongs to it. */
   deleteWorkspace(id: string): void {
     writeWorkspaces(readWorkspaces().filter((w) => w.id !== id));
     writeAll(readAll().filter((r) => r.workspaceId !== id));
+    writeTeamMembers(readTeamMembers().filter((m) => m.workspaceId !== id));
+  },
+
+  listTeamMembers(workspaceId: string): TeamMember[] {
+    return readTeamMembers()
+      .filter((m) => m.workspaceId === workspaceId)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  },
+
+  getTeamMember(id: string): TeamMember | undefined {
+    return readTeamMembers().find((m) => m.id === id);
+  },
+
+  saveTeamMember(member: TeamMember): void {
+    const all = readTeamMembers();
+    const index = all.findIndex((m) => m.id === member.id);
+    if (index === -1) {
+      all.push(member);
+    } else {
+      all[index] = member;
+    }
+    writeTeamMembers(all);
+  },
+
+  deleteTeamMember(id: string): void {
+    writeTeamMembers(readTeamMembers().filter((m) => m.id !== id));
   },
 
   getActiveWorkspaceId(): string | null {
@@ -176,6 +227,7 @@ export const storageService = {
         const seed = buildSeedWorkspaces();
         writeWorkspaces(seed.workspaces);
         writeAll(seed.roadmaps);
+        writeTeamMembers(seed.teamMembers);
         workspaces = seed.workspaces;
       } else if (roadmaps.length > 0) {
         const fallback = newWorkspace('Meu workspace');

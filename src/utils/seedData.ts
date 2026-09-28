@@ -1,10 +1,14 @@
-import type { Roadmap, Workspace } from '@/types/roadmap.types';
+import type { Roadmap, TeamMember, Workspace } from '@/types/roadmap.types';
 
 function uid(): string {
   return crypto.randomUUID();
 }
 
-export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Roadmap[] } {
+export function buildSeedWorkspaces(): {
+  workspaces: Workspace[];
+  roadmaps: Roadmap[];
+  teamMembers: TeamMember[];
+} {
   const timestamp = new Date().toISOString();
 
   const platformWorkspace: Workspace = {
@@ -153,8 +157,15 @@ export function buildSeedWorkspaces(): { workspaces: Workspace[]; roadmaps: Road
     ],
   };
 
+  const teamMembers: TeamMember[] = [
+    { id: uid(), workspaceId: platformWorkspace.id, name: 'Ana Souza', createdAt: timestamp, updatedAt: timestamp },
+    { id: uid(), workspaceId: platformWorkspace.id, name: 'Bruno Lima', createdAt: timestamp, updatedAt: timestamp },
+    { id: uid(), workspaceId: platformWorkspace.id, name: 'Carla Nunes', createdAt: timestamp, updatedAt: timestamp },
+  ];
+
   return {
     workspaces: [platformWorkspace, growthWorkspace],
     roadmaps: [platformRoadmap, growthRoadmap],
+    teamMembers,
   };
 }

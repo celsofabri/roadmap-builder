@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRoadmapStore } from '@/store/roadmapStore';
 import { useWorkspaceStore } from '@/store/workspaceStore';
+import { useTeamMemberStore } from '@/store/teamMemberStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RoadmapDetail } from '@/components/roadmap/RoadmapDetail';
 import { EmptyWorkspace } from '@/components/layout/EmptyWorkspace';
@@ -24,6 +25,7 @@ function App() {
   const closeRoadmap = useRoadmapStore((s) => s.closeRoadmap);
   const loadWorkspaces = useWorkspaceStore((s) => s.loadWorkspaces);
   const activeWorkspaceId = useWorkspaceStore((s) => s.activeWorkspaceId);
+  const loadMembers = useTeamMemberStore((s) => s.loadMembers);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
@@ -36,8 +38,9 @@ function App() {
   useEffect(() => {
     if (!activeWorkspaceId) return;
     loadRoadmaps();
+    loadMembers();
     closeRoadmap();
-  }, [activeWorkspaceId, loadRoadmaps, closeRoadmap]);
+  }, [activeWorkspaceId, loadRoadmaps, loadMembers, closeRoadmap]);
 
   function toggleCollapsed() {
     setCollapsed((prev) => {

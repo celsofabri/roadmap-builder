@@ -3,12 +3,26 @@ import styles from './OwnerAvatar.module.scss';
 
 interface OwnerAvatarProps {
   name: string;
+  /** Registered team member photo, if any — shown instead of the initials fallback. */
+  photoDataUrl?: string;
   size?: number;
   className?: string;
 }
 
-/** Small colored circle with a person's initials — used wherever a single owner is shown compactly. */
-export function OwnerAvatar({ name, size = 18, className }: OwnerAvatarProps) {
+/** Registered photo if available, otherwise a small colored circle with the person's initials. */
+export function OwnerAvatar({ name, photoDataUrl, size = 18, className }: OwnerAvatarProps) {
+  if (photoDataUrl) {
+    return (
+      <img
+        src={photoDataUrl}
+        alt=""
+        className={`${styles.avatar} ${styles.photo} ${className ?? ''}`}
+        style={{ width: size, height: size }}
+        title={name}
+      />
+    );
+  }
+
   const { bg, text } = ownerColor(name);
   return (
     <span

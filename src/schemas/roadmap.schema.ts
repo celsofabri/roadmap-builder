@@ -70,6 +70,10 @@ export const workspaceInputSchema = z.object({
   description: z.string().optional(),
 });
 
+export const teamMemberInputSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+});
+
 // Persisted-entity schemas (include id / children), used for JSON import.
 export const initiativeSchema = withDateOrder(
   initiativeBaseSchema.extend({ id: z.string().min(1) }),

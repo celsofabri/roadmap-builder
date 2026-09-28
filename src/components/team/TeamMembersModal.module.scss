@@ -1,0 +1,85 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.hint {
+  font-size: v.$f-sm;
+  color: v.$text-muted;
+}
+
+.empty {
+  padding: 1rem;
+  border-radius: v.$r-md;
+  background: v.$surface-sunken;
+  text-align: center;
+  font-size: v.$f-sm;
+  color: v.$text-subtle;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: v.$r-md;
+  transition: background-color v.$transition;
+
+  &:hover {
+    background: v.$surface-sunken;
+  }
+}
+
+.itemName {
+  flex: 1;
+  min-width: 0;
+  @include m.truncate;
+  font-size: v.$f-base;
+  font-weight: 500;
+  color: v.$text;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  flex-shrink: 0;
+}
+
+.addButton {
+  @include m.reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border: 1px dashed v.$border-strong;
+  border-radius: v.$r-md;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
+  transition:
+    border-color v.$transition,
+    color v.$transition,
+    background-color v.$transition;
+
+  &:hover {
+    border-color: v.$accent;
+    color: v.$accent-text;
+    background: v.$accent-soft;
+  }
+
+  @include m.focus-ring;
+}

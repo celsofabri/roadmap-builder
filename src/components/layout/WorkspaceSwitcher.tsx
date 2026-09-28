@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { WorkspaceForm } from '@/components/workspace/WorkspaceForm';
+import { TeamMembersModal } from '@/components/team/TeamMembersModal';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { WorkspaceIcon } from '@/components/shared/WorkspaceIcon';
 import {
@@ -11,6 +12,7 @@ import {
   PencilIcon,
   PlusIcon,
   TrashIcon,
+  UsersIcon,
 } from '@/components/shared/Icon';
 import styles from './WorkspaceSwitcher.module.scss';
 
@@ -46,6 +48,7 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
   const [open, setOpen] = useState(false);
   const [itemMenu, setItemMenu] = useState<ItemMenuPosition | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showTeamModal, setShowTeamModal] = useState(false);
   const [editing, setEditing] = useState<
     { id: string; name: string; description?: string; iconDataUrl?: string } | null
   >(null);
@@ -127,6 +130,10 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
             setPendingDelete(null);
           }}
         />
+      )}
+
+      {showTeamModal && active && (
+        <TeamMembersModal workspaceName={active.name} onClose={() => setShowTeamModal(false)} />
       )}
     </>
   );
@@ -215,17 +222,30 @@ export function WorkspaceSwitcher({ collapsed, onRequestExpand }: WorkspaceSwitc
             ))}
           </ul>
 
-          <button
-            type="button"
-            className={styles.createButton}
-            onClick={() => {
-              setShowCreateForm(true);
-              setOpen(false);
-            }}
-          >
-            <PlusIcon size={14} />
-            Novo workspace
-          </button>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={styles.createButton}
+              onClick={() => {
+                setShowTeamModal(true);
+                setOpen(false);
+              }}
+            >
+              <UsersIcon size={14} />
+              Gerenciar time
+            </button>
+            <button
+              type="button"
+              className={styles.createButton}
+              onClick={() => {
+                setShowCreateForm(true);
+                setOpen(false);
+              }}
+            >
+              <PlusIcon size={14} />
+              Novo workspace
+            </button>
+          </div>
         </div>
       )}
 
