@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon } from '@/components/shared/Icon';
 import sharedStyles from '@/styles/shared.module.scss';
@@ -11,14 +11,31 @@ interface ModalProps {
   wide?: boolean;
 }
 
+// Mount-order stack of every open Modal, so that when one opens on top of
+// another (e.g. a ConfirmDialog over a management modal), Escape only closes
+// the topmost one instead of both at once.
+const modalStack: symbol[] = [];
+
 export function Modal({ title, onClose, children, wide }: ModalProps) {
   // Closing plays a short exit animation before the parent actually unmounts
   // this component — see the animationend handler below.
   const [closing, setClosing] = useState(false);
+  const idRef = useRef(Symbol('modal'));
+
+  useEffect(() => {
+    const id = idRef.current;
+    modalStack.push(id);
+    return () => {
+      const index = modalStack.indexOf(id);
+      if (index !== -1) modalStack.splice(index, 1);
+    };
+  }, []);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setClosing(true);
+      if (e.key !== 'Escape') return;
+      if (modalStack[modalStack.length - 1] !== idRef.current) return;
+      setClosing(true);
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
