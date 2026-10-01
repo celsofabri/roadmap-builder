@@ -10,14 +10,12 @@ import { businessDaysBetweenISO, rangeSpanBusinessDays } from '@/utils/dateUtils
 import { packIntoRows } from '@/utils/packIntoRows';
 import { ownerColor } from '@/utils/ownerAvatar';
 import { DEFAULT_LANE_COLOR, lightenColor } from '@/utils/color';
+import {
+  INITIATIVE_LIGHTEN,
+  INITIATIVE_ROW_GAP,
+  INITIATIVE_ROW_H,
+} from '@/components/roadmap/layoutConstants';
 import styles from './TimelineLane.module.scss';
-
-/** How much lighter initiative bars are than their epic's own color — keeps the two visually distinct. */
-const INITIATIVE_LIGHTEN = 0.42;
-
-/** Kept in sync with `.slot` height in InitiativeBar.module.scss. */
-const INITIATIVE_ROW_H = 24;
-const INITIATIVE_ROW_GAP = 4;
 
 /** Kept in sync with `.addInitiativeBtn` width in the stylesheet. */
 const ADD_BTN_W = 22;

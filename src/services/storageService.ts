@@ -6,6 +6,7 @@ import type {
   WorkspaceSummary,
 } from '@/types/roadmap.types';
 import { regenerateRoadmapIds } from '@/utils/cloneRoadmap';
+import { migrateRoadmapOwnersWithReport } from '@/utils/owners';
 import { buildSeedWorkspaces } from '@/utils/seedData';
 
 const STORAGE_KEY = 'roadmap-builder:roadmaps';
@@ -13,13 +14,53 @@ const WORKSPACES_KEY = 'roadmap-builder:workspaces';
 const ACTIVE_WORKSPACE_KEY = 'roadmap-builder:active-workspace';
 const TEAM_MEMBERS_KEY = 'roadmap-builder:team-members';
 const SEEDED_KEY = 'roadmap-builder:seeded';
+/** Verbatim copy of the roadmaps key taken before the first owner -> owners migration. */
+export const OWNERS_BACKUP_KEY = 'roadmap-builder:roadmaps:pre-owners-backup';
+
+let migrationWarned = false;
+
+/**
+ * Folds the legacy single `owner` of epics/initiatives into `owners`, in memory only: reading
+ * never writes the roadmaps key. The first time legacy data is seen, the untouched raw JSON is
+ * copied to a backup key (never overwritten, so the oldest legacy copy survives).
+ */
+function migrateLegacyOwners(raw: string, parsed: unknown[]): Roadmap[] {
+  let migrated = 0;
+  let discarded = 0;
+  const roadmaps = parsed.map((entry) => {
+    const report = migrateRoadmapOwnersWithReport(entry);
+    migrated += report.migrated;
+    discarded += report.discarded;
+    return report.roadmap;
+  });
+
+  if (migrated > 0) {
+    try {
+      if (localStorage.getItem(OWNERS_BACKUP_KEY) === null) {
+        localStorage.setItem(OWNERS_BACKUP_KEY, raw);
+      }
+    } catch {
+      console.warn('roadmap-builder: não foi possível guardar o backup da migração de responsáveis');
+    }
+  }
+  if ((migrated > 0 || discarded > 0) && !migrationWarned) {
+    migrationWarned = true;
+    console.warn(
+      `roadmap-builder: migrados ${migrated} campos "owner" para "owners"; descartadas ${discarded} entradas inválidas`,
+    );
+  }
+  return roadmaps as Roadmap[];
+}
 
 function readAll(): Roadmap[] {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Roadmap[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Cheap pre-check: `"owner"` does not match `"owners"`, so migrated data skips the walk.
+    if (!raw.includes('"owner"')) return parsed as Roadmap[];
+    return migrateLegacyOwners(raw, parsed);
   } catch {
     console.error('roadmap-builder: falha ao ler roadmaps do localStorage, dado corrompido ignorado');
     return [];

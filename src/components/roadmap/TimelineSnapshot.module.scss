@@ -1,0 +1,298 @@
+@use '../../styles/variables' as v;
+@use '../../styles/mixins' as m;
+
+$today-color: #db2777;
+
+// Outer box takes the scaled size (set inline) and clips: a CSS transform does not shrink the
+// layout box of the stage, so without this the unscaled stage would still cause scrollbars.
+.frame {
+  position: relative;
+  overflow: hidden;
+  background: v.$surface;
+}
+
+.stage {
+  transform-origin: top left;
+  background: v.$surface;
+  color: v.$text;
+}
+
+// Hidden until the first measurement so the unscaled stage never flashes on screen.
+.stageUnmeasured {
+  opacity: 0;
+}
+
+// --- Header: always one line, otherwise the height would depend on the width (see ADR-0003) ---
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem 1.25rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  padding: 0.875rem 1rem 0.75rem;
+  border-bottom: 1px solid v.$border;
+}
+
+.title {
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: v.$f-xl;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  @include m.truncate;
+}
+
+.period,
+.updated {
+  flex-shrink: 0;
+  font-size: v.$f-sm;
+  color: v.$text-muted;
+  white-space: nowrap;
+}
+
+.updated {
+  color: v.$text-subtle;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+// --- Grid ---------------------------------------------------------------------------------
+
+.grid {
+  position: relative;
+}
+
+.rulerRow {
+  display: flex;
+  background: v.$surface;
+  border-bottom: 1px solid v.$border;
+}
+
+.rulerGutter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 0.875rem;
+  border-right: 1px solid v.$border;
+  font-size: v.$f-2xs;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: v.$text-subtle;
+}
+
+.rulerCells {
+  display: flex;
+}
+
+.rulerCell {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0.5rem;
+  border-right: 1px solid v.$border;
+  font-size: v.$f-xs;
+  font-weight: 500;
+  color: v.$text-muted;
+  @include m.truncate;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.rulerCellAlt {
+  background: v.$surface-muted;
+}
+
+.lanes {
+  position: relative;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gridLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: v.$border;
+  opacity: 0.7;
+}
+
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 2px;
+  background: $today-color;
+  pointer-events: none;
+}
+
+// --- Lane ---------------------------------------------------------------------------------
+
+$label-indent: calc(8px + 0.45rem);
+
+.lane {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid v.$border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.laneLabel {
+  flex-shrink: 0;
+  background: v.$surface;
+  border-right: 1px solid v.$border;
+  padding: 0.75rem 0.875rem;
+  overflow: hidden;
+}
+
+.laneLabelRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.laneDot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  flex-shrink: 0;
+  border-radius: v.$r-pill;
+}
+
+.laneTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: v.$f-base;
+  font-weight: 500;
+  color: v.$text;
+}
+
+.laneMeta {
+  margin-top: 1px;
+  margin-left: $label-indent;
+  font-size: v.$f-2xs;
+  color: v.$text-subtle;
+}
+
+.laneOwners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+  margin-left: $label-indent;
+}
+
+.laneOwnerChip {
+  padding: 0.1rem 0.4rem;
+  border-radius: v.$r-pill;
+  font-size: 0.625rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.laneBody {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden; // bars outside the period are clipped instead of widening the stage
+  padding: 0.5rem 0;
+}
+
+.laneEmpty {
+  padding: 0.5rem 0.875rem;
+  font-size: v.$f-xs;
+  color: v.$text-subtle;
+}
+
+.epicRow {
+  & + & {
+    margin-top: 0.5rem;
+  }
+}
+
+.epicBarSlot {
+  position: relative;
+  height: 36px;
+}
+
+.epicSlot {
+  position: absolute;
+  top: 2px;
+  height: 32px;
+}
+
+.epicBar {
+  height: 100%;
+  border-radius: v.$r-md;
+  color: #fff;
+  box-shadow:
+    v.$shadow-sm,
+    inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.epicBody {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.625rem;
+  overflow: hidden;
+  border-radius: v.$r-md;
+  font-size: v.$f-sm;
+  font-weight: 600;
+}
+
+.initiativeLane {
+  position: relative;
+  min-height: 3px;
+  margin-top: 3px;
+}
+
+.initiativeSlot {
+  position: absolute;
+  height: 24px; // INITIATIVE_ROW_H
+}
+
+.initiativeBar {
+  height: 100%;
+  border-radius: v.$r-sm;
+  box-shadow:
+    v.$shadow-xs,
+    inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.initiativeBody {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.5rem;
+  overflow: hidden;
+  border-radius: v.$r-sm;
+  font-size: v.$f-xs;
+  font-weight: 600;
+}

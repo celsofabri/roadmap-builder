@@ -1,6 +1,7 @@
 import { roadmapSchema } from '@/schemas/roadmap.schema';
 import type { Roadmap } from '@/types/roadmap.types';
 import { regenerateRoadmapIds } from '@/utils/cloneRoadmap';
+import { mergeLegacyOwnersDeep } from '@/utils/owners';
 
 export interface ImportResult {
   success: boolean;
@@ -30,7 +31,8 @@ export async function importRoadmapsFromFile(file: File): Promise<ImportResult> 
 
   const roadmaps: Roadmap[] = [];
   for (const candidate of candidates) {
-    const result = roadmapSchema.safeParse(candidate);
+    // Files exported before multi-owner carry a single `owner`; fold it into `owners` first.
+    const result = roadmapSchema.safeParse(mergeLegacyOwnersDeep(candidate));
     if (!result.success) {
       const issue = result.error.issues[0];
       const path = issue.path.join('.') || '(raiz)';

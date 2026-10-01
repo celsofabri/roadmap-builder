@@ -91,6 +91,14 @@
   gap: 0.25rem;
 }
 
+.tabActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 0.5rem;
+}
+
 .ownersToggle {
   @include m.reset-button;
   display: inline-flex;

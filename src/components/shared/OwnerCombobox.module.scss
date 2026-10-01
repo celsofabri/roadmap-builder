@@ -12,12 +12,10 @@
 // --- Dropdown ----------------------------------------------------------
 
 .dropdown {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 20;
-  max-height: 14rem;
+  // In normal flow (not absolutely positioned): the list pushes the form footer down
+  // instead of floating over Cancel/Save, and the modal panel scrolls to fit it.
+  margin-top: 4px;
+  max-height: 11rem;
   overflow-y: auto;
   padding: 4px;
   border-radius: v.$r-md;

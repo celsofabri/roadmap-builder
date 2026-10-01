@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon } from '@/components/shared/Icon';
 import sharedStyles from '@/styles/shared.module.scss';
+import { modalStack } from '@/components/shared/modalStack';
 import styles from './Modal.module.scss';
 
 interface ModalProps {
@@ -10,11 +11,6 @@ interface ModalProps {
   children: ReactNode;
   wide?: boolean;
 }
-
-// Mount-order stack of every open Modal, so that when one opens on top of
-// another (e.g. a ConfirmDialog over a management modal), Escape only closes
-// the topmost one instead of both at once.
-const modalStack: symbol[] = [];
 
 export function Modal({ title, onClose, children, wide }: ModalProps) {
   // Closing plays a short exit animation before the parent actually unmounts
@@ -33,7 +29,7 @@ export function Modal({ title, onClose, children, wide }: ModalProps) {
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if (e.key !== 'Escape') return;
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (modalStack[modalStack.length - 1] !== idRef.current) return;
       setClosing(true);
     }

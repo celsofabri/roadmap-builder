@@ -240,6 +240,7 @@
 
 .formActions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
   padding-top: 0.25rem;
@@ -254,6 +255,8 @@
 /// Groups Cancel/Save together inside a `.formActionsSpread` row.
 .formActionsGroup {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.5rem;
 }
 

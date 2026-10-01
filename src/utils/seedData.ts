@@ -49,7 +49,7 @@ export function buildSeedWorkspaces(): {
             startDate: '2026-01-01',
             endDate: '2026-03-31',
             status: 'overdue',
-            owner: 'Ana Souza',
+            owners: ['Ana Souza', 'Bruno Lima'],
             initiatives: [
               {
                 id: uid(),
@@ -57,7 +57,7 @@ export function buildSeedWorkspaces(): {
                 startDate: '2026-01-05',
                 endDate: '2026-02-15',
                 status: 'done',
-                owner: 'Ana Souza',
+                owners: ['Ana Souza', 'Carla Nunes'],
               },
               {
                 id: uid(),
@@ -65,7 +65,8 @@ export function buildSeedWorkspaces(): {
                 startDate: '2026-02-16',
                 endDate: '2026-03-31',
                 status: 'overdue',
-                owner: 'Bruno Lima',
+                // Second name is deliberately not a registered team member (free-typed owner).
+                owners: ['Bruno Lima', 'Dani Externo'],
               },
             ],
           },

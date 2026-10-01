@@ -18,6 +18,7 @@ import { useRoadmapStore } from '@/store/roadmapStore';
 import type { Epic, Initiative, Objective, TeamMember } from '@/types/roadmap.types';
 import { RoadmapForm } from '@/components/roadmap/RoadmapForm';
 import { TimelineView } from '@/components/roadmap/TimelineView';
+import { FullscreenRoadmap } from '@/components/roadmap/fullscreen/FullscreenRoadmap';
 import { ObjectiveForm } from '@/components/forms/ObjectiveForm';
 import { EpicForm } from '@/components/forms/EpicForm';
 import { InitiativeForm } from '@/components/forms/InitiativeForm';
@@ -26,8 +27,8 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatShortDateLabel } from '@/utils/dateUtils';
 import { ownerColor } from '@/utils/ownerAvatar';
 import { DEFAULT_LANE_COLOR } from '@/utils/color';
-import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
-import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
+import { OwnerAvatarStack } from '@/components/shared/OwnerAvatarStack';
+import { useTeamMemberStore } from '@/store/teamMemberStore';
 import {
   CalendarIcon,
   EyeIcon,
@@ -131,12 +132,8 @@ function InitiativeListItem({
       </button>
 
       <div className={styles.initiativeMain}>
-        {showOwners && initiative.owner && (
-          <OwnerAvatar
-            name={initiative.owner}
-            photoDataUrl={findMemberPhoto(members, initiative.owner)}
-            size={18}
-          />
+        {showOwners && initiative.owners && (
+          <OwnerAvatarStack owners={initiative.owners} members={members} size={18} wrap />
         )}
         <span className={styles.initiativeTitle}>{initiative.title}</span>
         <StatusBadge status={initiative.status} />
@@ -214,12 +211,8 @@ function EpicListItem({
 
         <div className={styles.epicMain}>
           <div className={styles.epicTitleRow}>
-            {showOwners && epic.owner && (
-              <OwnerAvatar
-                name={epic.owner}
-                photoDataUrl={findMemberPhoto(members, epic.owner)}
-                size={18}
-              />
+            {showOwners && epic.owners && (
+              <OwnerAvatarStack owners={epic.owners} members={members} size={18} wrap />
             )}
             <span className={styles.epicTitle}>{epic.title}</span>
             <StatusBadge status={epic.status} />
@@ -584,16 +577,19 @@ export function RoadmapDetail() {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={toggleShowOwners}
-            aria-pressed={showOwners}
-            title={showOwners ? 'Ocultar responsáveis' : 'Mostrar responsáveis'}
-            className={`${styles.ownersToggle} ${showOwners ? styles.ownersToggleActive : ''}`}
-          >
-            {showOwners ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
-            Responsáveis
-          </button>
+          <div className={styles.tabActions}>
+            <button
+              type="button"
+              onClick={toggleShowOwners}
+              aria-pressed={showOwners}
+              title={showOwners ? 'Ocultar responsáveis' : 'Mostrar responsáveis'}
+              className={`${styles.ownersToggle} ${showOwners ? styles.ownersToggleActive : ''}`}
+            >
+              {showOwners ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
+              Responsáveis
+            </button>
+            <FullscreenRoadmap roadmap={roadmap} showOwners={showOwners} />
+          </div>
         </div>
       </header>
 

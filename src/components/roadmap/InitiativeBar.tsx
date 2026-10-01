@@ -6,13 +6,12 @@ import type { Initiative } from '@/types/roadmap.types';
 import {
   addBusinessDaysISO,
   businessDaysBetweenISO,
-  formatShortDateLabel,
   rangeSpanBusinessDays,
 } from '@/utils/dateUtils';
-import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
-import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
+import { InitiativeBarView } from '@/components/roadmap/InitiativeBarView';
 import { contrastTextColor } from '@/utils/color';
-import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
+import { useTeamMemberStore } from '@/store/teamMemberStore';
+import { barTooltip } from '@/utils/barTooltip';
 import styles from './InitiativeBar.module.scss';
 
 interface InitiativeBarProps {
@@ -58,14 +57,7 @@ export function InitiativeBar({
   // Initiative bars use a lightened tint of the epic's color, which can turn
   // pale enough that white text stops being legible — pick dark text then.
   const textColor = contrastTextColor(color);
-  const tooltip = [
-    initiative.title,
-    `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
-    initiative.status ? STATUS_LABELS[initiative.status] : null,
-    initiative.owner ? `Responsável: ${initiative.owner}` : null,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const tooltip = barTooltip(initiative, display);
 
   function startResize(edge: 'start' | 'end', e: React.PointerEvent) {
     e.stopPropagation();
@@ -125,21 +117,7 @@ export function InitiativeBar({
           className={styles.body}
           title={tooltip}
         >
-          {showOwner && initiative.owner && (
-            <OwnerAvatar
-              name={initiative.owner}
-              photoDataUrl={findMemberPhoto(members, initiative.owner)}
-              size={16}
-              className={styles.ownerAvatar}
-            />
-          )}
-          <span className={styles.label}>{initiative.title}</span>
-          {initiative.status && (
-            <span
-              className={styles.statusDot}
-              style={{ backgroundColor: STATUS_COLORS[initiative.status] }}
-            />
-          )}
+          <InitiativeBarView initiative={initiative} showOwner={showOwner} members={members} />
         </button>
         <div
           onPointerDown={(e) => startResize('start', e)}

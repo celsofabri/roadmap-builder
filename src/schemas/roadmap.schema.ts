@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dedupeOwners } from '@/utils/owners';
 
 const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,6 +19,14 @@ function withDateOrder<T extends { startDate: string; endDate: string }>(
   });
 }
 
+// Epic/initiative owners: trimmed, non-blank names, de-duplicated case-insensitively
+// (first spelling and order kept). An empty list is normalized to "absent".
+const ownersSchema = z
+  .array(z.string().trim().min(1))
+  .transform(dedupeOwners)
+  .transform((list) => (list.length > 0 ? list : undefined))
+  .optional();
+
 const statusSchema = z.enum(['planned', 'in_progress', 'overdue', 'done', 'blocked']);
 
 // Base object shapes (no id / no children), reused for both persisted
@@ -28,7 +37,7 @@ const initiativeBaseSchema = z.object({
   startDate: isoDateSchema,
   endDate: isoDateSchema,
   status: statusSchema.optional(),
-  owner: z.string().min(1).optional(),
+  owners: ownersSchema,
 });
 
 const epicBaseSchema = z.object({
@@ -37,7 +46,7 @@ const epicBaseSchema = z.object({
   startDate: isoDateSchema,
   endDate: isoDateSchema,
   status: statusSchema.optional(),
-  owner: z.string().min(1).optional(),
+  owners: ownersSchema,
   /** Overrides the objective's lane color for this epic; unset means "inherit". */
   color: z.string().optional(),
 });

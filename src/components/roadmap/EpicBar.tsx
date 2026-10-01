@@ -6,12 +6,11 @@ import type { Epic } from '@/types/roadmap.types';
 import {
   addBusinessDaysISO,
   businessDaysBetweenISO,
-  formatShortDateLabel,
   rangeSpanBusinessDays,
 } from '@/utils/dateUtils';
-import { STATUS_COLORS, STATUS_LABELS } from '@/utils/statusOptions';
-import { OwnerAvatar } from '@/components/shared/OwnerAvatar';
-import { findMemberPhoto, useTeamMemberStore } from '@/store/teamMemberStore';
+import { EpicBarView } from '@/components/roadmap/EpicBarView';
+import { useTeamMemberStore } from '@/store/teamMemberStore';
+import { barTooltip } from '@/utils/barTooltip';
 import styles from './EpicBar.module.scss';
 
 interface EpicBarProps {
@@ -51,14 +50,7 @@ export function EpicBar({
   const display = preview ?? epic;
   const left = businessDaysBetweenISO(periodStart, display.startDate) * dayWidth;
   const width = Math.max(rangeSpanBusinessDays(display) * dayWidth, 14);
-  const tooltip = [
-    epic.title,
-    `${formatShortDateLabel(display.startDate)} – ${formatShortDateLabel(display.endDate)}`,
-    epic.status ? STATUS_LABELS[epic.status] : null,
-    epic.owner ? `Responsável: ${epic.owner}` : null,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const tooltip = barTooltip(epic, display);
 
   function startResize(edge: 'start' | 'end', e: React.PointerEvent) {
     e.stopPropagation();
@@ -117,21 +109,7 @@ export function EpicBar({
           className={styles.body}
           title={tooltip}
         >
-          {showOwner && epic.owner && (
-            <OwnerAvatar
-              name={epic.owner}
-              photoDataUrl={findMemberPhoto(members, epic.owner)}
-              size={18}
-              className={styles.ownerAvatar}
-            />
-          )}
-          <span className={styles.label}>{epic.title}</span>
-          {epic.status && (
-            <span
-              className={styles.statusDot}
-              style={{ backgroundColor: STATUS_COLORS[epic.status] }}
-            />
-          )}
+          <EpicBarView epic={epic} showOwner={showOwner} members={members} />
         </button>
         <div
           onPointerDown={(e) => startResize('start', e)}

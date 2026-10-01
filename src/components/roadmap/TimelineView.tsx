@@ -11,7 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useRoadmapStore } from '@/store/roadmapStore';
-import type { Epic, Granularity, Initiative, Objective, Roadmap, Status } from '@/types/roadmap.types';
+import type { Epic, Granularity, Initiative, Objective, Roadmap } from '@/types/roadmap.types';
 import { TimelineLane } from '@/components/roadmap/TimelineLane';
 import {
   addBusinessDaysISO,
@@ -23,22 +23,14 @@ import {
   todayISO,
 } from '@/utils/dateUtils';
 import { useElementWidth } from '@/utils/useElementWidth';
-import { STATUS_OPTIONS } from '@/utils/statusOptions';
+import { computeStatusCounts } from '@/utils/computeStatusCounts';
+import { computeGridOffsets } from '@/utils/fullscreenFit';
+import { SHOW_TODAY_LINE_KEY, readShowTodayLine } from '@/utils/preferences';
+import { labelWidthFor } from '@/components/roadmap/layoutConstants';
 import { CalendarIcon, PlusIcon } from '@/components/shared/Icon';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import sharedStyles from '@/styles/shared.module.scss';
 import styles from './TimelineView.module.scss';
-
-const SHOW_TODAY_LINE_KEY = 'roadmap-builder:show-today-line';
-
-function readShowTodayLine(): boolean {
-  try {
-    const stored = localStorage.getItem(SHOW_TODAY_LINE_KEY);
-    return stored === null ? true : stored === '1';
-  } catch {
-    return true;
-  }
-}
 
 interface TimelineViewProps {
   roadmap: Roadmap;
@@ -132,7 +124,7 @@ export function TimelineView({
   const [scrollRef, containerWidth] = useElementWidth<HTMLDivElement>();
 
   const totalDays = rangeSpanBusinessDays(roadmap.period);
-  const labelWidth = containerWidth > 0 && containerWidth < 768 ? 150 : 220;
+  const labelWidth = labelWidthFor(containerWidth);
 
   // Stretch the grid to fill the container, but never below the readable minimum.
   const available = Math.max(containerWidth - labelWidth, 0);
@@ -178,33 +170,16 @@ export function TimelineView({
   }, [dayWidth, snapDays]);
 
   // Cumulative x offsets for the vertical grid lines, one per ruler cell boundary.
-  const gridOffsets = useMemo(() => {
-    const offsets: number[] = [];
-    let x = 0;
-    for (const cell of rulerCells) {
-      x += rangeSpanBusinessDays(cell) * dayWidth;
-      offsets.push(x);
-    }
-    return offsets.slice(0, -1);
-  }, [rulerCells, dayWidth]);
+  const gridOffsets = useMemo(
+    () =>
+      computeGridOffsets(
+        rulerCells.map((cell) => rangeSpanBusinessDays(cell)),
+        dayWidth,
+      ),
+    [rulerCells, dayWidth],
+  );
 
-  const statusCounts = useMemo(() => {
-    const counts = new Map<Status, number>();
-    for (const objective of roadmap.objectives) {
-      for (const epic of objective.epics) {
-        if (epic.status) counts.set(epic.status, (counts.get(epic.status) ?? 0) + 1);
-        for (const initiative of epic.initiatives) {
-          if (initiative.status) {
-            counts.set(initiative.status, (counts.get(initiative.status) ?? 0) + 1);
-          }
-        }
-      }
-    }
-    return STATUS_OPTIONS.filter((o) => counts.has(o.value)).map((o) => ({
-      status: o.value,
-      count: counts.get(o.value) as number,
-    }));
-  }, [roadmap.objectives]);
+  const statusCounts = useMemo(() => computeStatusCounts(roadmap), [roadmap]);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over, delta } = event;

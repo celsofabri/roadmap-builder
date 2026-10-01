@@ -1,0 +1,147 @@
+@use '../../../styles/variables' as v;
+@use '../../../styles/mixins' as m;
+
+// Matches the "Responsáveis" toggle next to it in RoadmapDetail.
+.trigger {
+  @include m.reset-button;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  margin-bottom: 0.75rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: v.$r-md;
+  border: 1px solid v.$border-strong;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
+  transition:
+    background-color v.$transition,
+    color v.$transition,
+    border-color v.$transition;
+
+  &:hover:not(:disabled) {
+    color: v.$text;
+    background: v.$surface-muted;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  @include m.focus-ring;
+}
+
+// Above the sidebar (60), below Modal (100) — see design doc 2.1.
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: v.$surface;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.exitButton {
+  @include m.reset-button;
+  position: absolute;
+  top: 0.625rem;
+  right: 0.75rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: v.$r-md;
+  border: 1px solid v.$border-strong;
+  background: v.$surface;
+  box-shadow: v.$shadow-xs;
+  font-size: v.$f-sm;
+  font-weight: 500;
+  color: v.$text-muted;
+  opacity: 0.85;
+  transition:
+    opacity v.$transition,
+    color v.$transition,
+    background-color v.$transition;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: v.$text;
+    background: v.$surface-muted;
+  }
+
+  @include m.focus-ring;
+}
+
+.notice {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  z-index: 5;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border-radius: v.$r-md;
+  border: 1px solid v.$warning;
+  background: v.$warning-soft;
+  box-shadow: v.$shadow-sm;
+  font-size: v.$f-xs;
+  color: v.$warning;
+}
+
+.noticeClose {
+  @include m.reset-button;
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 0.2rem;
+  border-radius: v.$r-pill;
+
+  &:hover {
+    background: rgba(178, 106, 0, 0.12);
+  }
+
+  @include m.focus-ring;
+}
+
+// While printing the fit is recomputed for the sheet (see FullscreenRoadmap).
+.overlayPrinting {
+  background: #fff;
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 8mm;
+  }
+
+  .overlay {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .viewport {
+    position: static;
+    overflow: visible;
+  }
+
+  .exitButton,
+  .notice {
+    display: none;
+  }
+}

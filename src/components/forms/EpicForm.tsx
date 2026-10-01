@@ -8,7 +8,7 @@ import { formatShortDateLabel, isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
 import { AlertIcon } from '@/components/shared/Icon';
-import { OwnerCombobox } from '@/components/shared/OwnerCombobox';
+import { OwnersField } from '@/components/shared/OwnersField';
 import { PRESET_COLORS } from '@/utils/color';
 import styles from '@/styles/shared.module.scss';
 
@@ -19,7 +19,7 @@ interface EpicFormProps {
     startDate: string;
     endDate: string;
     status?: Status;
-    owner?: string;
+    owners?: string[];
     color?: string;
   };
   /** Roadmap period, used to show a non-blocking out-of-range warning. */
@@ -47,7 +47,7 @@ export function EpicForm({
     endDate: initial?.endDate ?? parentRange.endDate,
   });
   const [status, setStatus] = useState<Status | ''>(initial?.status ?? 'planned');
-  const [owner, setOwner] = useState(initial?.owner ?? '');
+  const [owners, setOwners] = useState<string[]>(initial?.owners ?? []);
   // undefined means "inherit the objective's color" — only set when the user picks their own.
   const [color, setColor] = useState<string | undefined>(initial?.color);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,7 +62,7 @@ export function EpicForm({
       startDate: range.startDate,
       endDate: range.endDate,
       status: status || undefined,
-      owner: owner.trim() || undefined,
+      owners: owners.length > 0 ? owners : undefined,
       color,
     });
     if (!result.success) {
@@ -182,14 +182,14 @@ export function EpicForm({
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="epic-owner">
-            Responsável <span className={styles.hint}>(opcional)</span>
+          <label className={styles.label} htmlFor="epic-owners">
+            Responsáveis <span className={styles.hint}>(opcional)</span>
           </label>
-          <OwnerCombobox
-            id="epic-owner"
-            value={owner}
-            onChange={setOwner}
-            placeholder="Nome de quem está à frente"
+          <OwnersField
+            id="epic-owners"
+            value={owners}
+            onChange={setOwners}
+            placeholder="Nome de quem está à frente e Enter"
           />
         </div>
 

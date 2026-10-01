@@ -16,8 +16,8 @@ export interface Initiative {
   startDate: string;
   endDate: string;
   status?: Status;
-  /** Name of the person leading this initiative. */
-  owner?: string;
+  /** Names of the people responsible for this initiative. */
+  owners?: string[];
 }
 
 export interface Epic {
@@ -27,8 +27,8 @@ export interface Epic {
   startDate: string;
   endDate: string;
   status?: Status;
-  /** Name of the person leading this epic. */
-  owner?: string;
+  /** Names of the people responsible for this epic. */
+  owners?: string[];
   /** Overrides the objective's lane color for this epic's bar; unset inherits it. */
   color?: string;
   initiatives: Initiative[];

@@ -30,7 +30,7 @@ export interface EpicInput {
   startDate: string;
   endDate: string;
   status?: Status;
-  owner?: string;
+  owners?: string[];
   color?: string;
 }
 
@@ -40,7 +40,7 @@ export interface InitiativeInput {
   startDate: string;
   endDate: string;
   status?: Status;
-  owner?: string;
+  owners?: string[];
 }
 
 interface RoadmapStoreState {

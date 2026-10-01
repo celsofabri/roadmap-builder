@@ -24,6 +24,11 @@ interface OwnerComboboxProps {
    * renders separately, not inside this field.
    */
   collapseWhenFilled?: boolean;
+  /**
+   * While `.current` is true, focusing the input does not open the suggestions — lets a parent
+   * return focus programmatically (e.g. after removing a chip) without popping the list.
+   */
+  suppressOpenOnFocusRef?: React.RefObject<boolean>;
 }
 
 /**
@@ -43,6 +48,7 @@ export function OwnerCombobox({
   excludeNames = [],
   placeholder,
   collapseWhenFilled = true,
+  suppressOpenOnFocusRef,
 }: OwnerComboboxProps) {
   const members = useTeamMemberStore((s) => s.members);
   const [open, setOpen] = useState(false);
@@ -50,7 +56,9 @@ export function OwnerCombobox({
   const [highlight, setHighlight] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const blurTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const listRef = useRef<HTMLUListElement>(null);
+  // True only while the highlight moves by keyboard — hover must never scroll the list.
+  const keyNavRef = useRef(false);
 
   // Adjusted during render (React's documented pattern for "reset state when
   // a prop changes") rather than in an effect, to avoid an extra render pass.
@@ -76,8 +84,6 @@ export function OwnerCombobox({
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [open]);
 
-  useEffect(() => () => clearTimeout(blurTimeout.current), []);
-
   const excluded = useMemo(
     () => new Set(excludeNames.map((n) => n.trim().toLowerCase())),
     [excludeNames],
@@ -95,6 +101,28 @@ export function OwnerCombobox({
   const showFreeTextOption = value.trim().length > 0 && !exactMatch;
   const totalOptions = suggestions.length + (showFreeTextOption ? 1 : 0);
 
+  const listVisible = open && totalOptions > 0;
+
+  // The list sits in the flow and pushes the footer down: when it opens, bring it (and the input
+  // above it) into view inside the modal's scrollable panel. 'nearest' scrolls only if needed;
+  // no `behavior: 'smooth'`, so prefers-reduced-motion is respected by construction.
+  // scrollIntoView is missing in jsdom, hence the guards.
+  useEffect(() => {
+    if (!listVisible) return;
+    const list = listRef.current;
+    if (typeof list?.scrollIntoView === 'function') list.scrollIntoView({ block: 'nearest' });
+    const input = inputRef.current;
+    if (typeof input?.scrollIntoView === 'function') input.scrollIntoView({ block: 'nearest' });
+  }, [listVisible]);
+
+  // Keep the active option visible while arrowing through a scrollable list.
+  useEffect(() => {
+    if (!listVisible || !keyNavRef.current) return;
+    keyNavRef.current = false;
+    const active = listRef.current?.querySelector('[aria-selected="true"]');
+    if (active && typeof active.scrollIntoView === 'function') active.scrollIntoView({ block: 'nearest' });
+  }, [listVisible, highlight]);
+
   function select(name: string) {
     if (onSelect) onSelect(name);
     else onChange(name);
@@ -108,30 +136,36 @@ export function OwnerCombobox({
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      keyNavRef.current = true;
       setOpen(true);
       setHighlight((h) => Math.min(h + 1, Math.max(totalOptions - 1, 0)));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      keyNavRef.current = true;
       setHighlight((h) => Math.max(h - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (open && totalOptions > 0) {
+      if (listVisible) {
         select(highlight < suggestions.length ? suggestions[highlight].name : value.trim());
       } else if (value.trim()) {
         select(value.trim());
       }
     } else if (e.key === 'Escape') {
+      // With the list showing, Escape only dismisses it. preventDefault tells Modal's
+      // document-level Escape handler (which honours the modal stack) to leave the modal open.
+      if (listVisible) e.preventDefault();
       setOpen(false);
     }
   }
 
   function handleBlur() {
-    // Delayed so a click on a suggestion registers before the dropdown unmounts.
-    blurTimeout.current = setTimeout(() => {
-      setOpen(false);
-      if (collapseWhenFilled && value.trim()) setEditing(false);
-      onBlurCommit?.();
-    }, 150);
+    // Synchronous on purpose: suggestion buttons use onMouseDown preventDefault, so a click on
+    // one never blurs the input and no delay is needed. Committing now (not 150ms later)
+    // means a following click on "Salvar" already sees the draft, and a click on a chip's ×
+    // can't be undone by a late commit built from a stale value.
+    setOpen(false);
+    if (collapseWhenFilled && value.trim()) setEditing(false);
+    onBlurCommit?.();
   }
 
   if (collapseWhenFilled && !editing && value) {
@@ -172,7 +206,9 @@ export function OwnerCombobox({
           onChange(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          if (!suppressOpenOnFocusRef?.current) setOpen(true);
+        }}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={styles.input}
@@ -183,8 +219,8 @@ export function OwnerCombobox({
         aria-autocomplete="list"
       />
 
-      {open && totalOptions > 0 && (
-        <ul className={styles.dropdown} role="listbox">
+      {listVisible && (
+        <ul ref={listRef} className={styles.dropdown} role="listbox">
           {suggestions.map((member, index) => (
             <li key={member.id}>
               <button

@@ -1,0 +1,38 @@
+@use '../../styles/variables' as v;
+
+.stack {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+// Overlapping avatars (timeline bars): every avatar after the first tucks under its
+// predecessor. A single owner has no overlap, so it renders exactly as a lone avatar.
+.overlap > * + * {
+  margin-left: calc(var(--avatar-size) * -0.35);
+}
+
+// List rows: all avatars in line, wrapping instead of being cut off.
+.wrap {
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: var(--avatar-size);
+  height: var(--avatar-size);
+  padding: 0 0.25em;
+  box-sizing: border-box;
+  border-radius: v.$r-pill;
+  background: v.$text-muted;
+  color: v.$text-inverse;
+  font-size: calc(var(--avatar-size) * 0.42);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}

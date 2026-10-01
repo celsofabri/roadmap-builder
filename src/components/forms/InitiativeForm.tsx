@@ -8,7 +8,7 @@ import { formatShortDateLabel, isRangeWithin } from '@/utils/dateUtils';
 import { STATUS_OPTIONS } from '@/utils/statusOptions';
 import type { Status } from '@/types/roadmap.types';
 import { AlertIcon } from '@/components/shared/Icon';
-import { OwnerCombobox } from '@/components/shared/OwnerCombobox';
+import { OwnersField } from '@/components/shared/OwnersField';
 import styles from '@/styles/shared.module.scss';
 
 interface InitiativeFormProps {
@@ -18,7 +18,7 @@ interface InitiativeFormProps {
     startDate: string;
     endDate: string;
     status?: Status;
-    owner?: string;
+    owners?: string[];
   };
   /** Parent epic's date range, used to show a non-blocking out-of-range warning. */
   parentRange: DateRange;
@@ -42,7 +42,7 @@ export function InitiativeForm({
     endDate: initial?.endDate ?? parentRange.endDate,
   });
   const [status, setStatus] = useState<Status | ''>(initial?.status ?? 'planned');
-  const [owner, setOwner] = useState(initial?.owner ?? '');
+  const [owners, setOwners] = useState<string[]>(initial?.owners ?? []);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const outOfRange = !isRangeWithin(range, parentRange);
@@ -55,7 +55,7 @@ export function InitiativeForm({
       startDate: range.startDate,
       endDate: range.endDate,
       status: status || undefined,
-      owner: owner.trim() || undefined,
+      owners: owners.length > 0 ? owners : undefined,
     });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -136,14 +136,14 @@ export function InitiativeForm({
         </div>
 
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="initiative-owner">
-            Responsável <span className={styles.hint}>(opcional)</span>
+          <label className={styles.label} htmlFor="initiative-owners">
+            Responsáveis <span className={styles.hint}>(opcional)</span>
           </label>
-          <OwnerCombobox
-            id="initiative-owner"
-            value={owner}
-            onChange={setOwner}
-            placeholder="Nome de quem está à frente"
+          <OwnersField
+            id="initiative-owners"
+            value={owners}
+            onChange={setOwners}
+            placeholder="Nome de quem está à frente e Enter"
           />
         </div>
 

@@ -80,3 +80,10 @@ textarea {
     background-clip: content-box;
   }
 }
+
+// Fullscreen roadmap: print only the overlay, never the app behind it.
+@media print {
+  body.rb-fullscreen-open #root {
+    display: none;
+  }
+}
